@@ -1,6 +1,7 @@
 from argparse import Action
 from ast import Delete
 from email.policy import default
+from operator import eq
 from webbrowser import get
 from wsgiref import validate
 from django.shortcuts import render
@@ -14,10 +15,11 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
 
 
 # Custom
-from accounts.models import OtpTempData, Student, User
+from accounts.models import Institute, OtpTempData, Student, StudentRequest, User
 from accounts.utils import get_role
 from .serializers import UserSerializer
 
@@ -160,5 +162,44 @@ class Auth(ModelViewSet):
             pass
 
 
-class Profile(ModelViewSet):
-    pass
+# after user created -- profile creation - institute creation - request creation
+class AuthPost(ModelViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request):
+        user = request.user
+        user_role = user.role
+
+        if(user_role == "Student"):
+            data = request.data
+
+            institute_code = data.get("insitute_code", None)
+            batches = data.get("batches", None)
+
+            if(not (institute_code and batches)):
+
+                pass
+
+            institute_list = Institute.objects.filter(
+                institute_code=institute_code)
+
+            if(institute_list.exists()):
+                institute = institute_list.first()
+
+            student_request = StudentRequest(student=request.user)
+
+            for batch_name in batches:
+                batch_list = institute.batches.objects.filter(
+                    batch_name=batch_name)
+
+                if(batch_list.exists()):
+                    batch = batch_list.first()
+                    student_request.batches.add(batch)
+
+            student_request.save()
+
+        elif user_role == "Teacher":
+            pass
+
+        elif(user_role == 'Owner'):
+            pass

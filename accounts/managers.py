@@ -32,3 +32,9 @@ class OwnerManager(BaseUserManager):
 
     def get_queryset(self, *args, **kwargs):
         return super().get_queryset(*args, **kwargs).filter(role=Roles.OWNER)
+
+
+class TeacherManager(BaseUserManager):
+
+    def get_queryset(self, *args, **kwargs):
+        return super().get_queryset(*args, **kwargs).filter(role=Roles.TEACHER)
