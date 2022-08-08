@@ -1,0 +1,42 @@
+#########
+POST http://127.0.0.1:8000/api/auth/
+Content-Type: application/json
+
+{
+
+}
+
+#########
+POST http://127.0.0.1:8000/api/auth/send_otp/
+Content-Type: application/json
+
+{
+
+}
+
+##############
+POST http://127.0.0.1:8000/api/initial/
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU5OTMxNzM5LCJpYXQiOjE2NTk5MzE0MzksImp0aSI6Ijc5ZTA3MzA4OTJhYjQ2ZWQ5NTI3MjcyN2EyMjFhZTE4IiwidXNlcl9pZCI6MX0.Q1DmhkTBshJd_3V7WVdZsoOjV2G9RN9QTxEWsu5Kgm8
+
+{
+
+}
+
+##############
+POST http://127.0.0.1:8000/api/auth/get_login_otp/
+Content-Type: application/json
+
+{
+    "mobile":"9837664975"
+}
+
+
+##############
+POST http://127.0.0.1:8000/api/auth/login_otp_verify/
+Content-Type: application/json
+
+{
+    "mobile":"9837664975",
+    "otp":"80591"
+}

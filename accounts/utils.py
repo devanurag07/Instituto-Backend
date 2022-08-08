@@ -28,3 +28,48 @@ def get_role(role_name):
         return Roles.TEACHER
     else:
         return Roles.NULL
+
+
+def required_data(data_dict, data_list):
+    errors = {
+
+    }
+
+    data = []
+
+    for d in data_list:
+        value = data_dict.get(d, None)
+        if(not value):
+            errors[d] = "This Field Is Required"
+
+        data.append(value)
+
+    if(len(list(errors.values())) == 0):
+        return True, data
+
+    return False, errors
+
+
+def resp_success(message, data={}, status_code=200):
+
+    return {
+        'success': True,
+        "message": message,
+        "data": data,
+        "status_code": status_code
+    }
+
+
+def resp_fail(error_msg, data={}, error_code=401):
+
+    return {
+        'success': False,
+        "message": error_msg,
+        "data": data,
+        "status_code": error_code
+    }
+
+
+def user_created(user):
+    user.is_created = True
+    user.save()

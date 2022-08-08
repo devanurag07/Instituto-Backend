@@ -89,7 +89,7 @@ class StudentProfile(models.Model):
 class Institute(models.Model):
     institute_name = models.CharField(max_length=255)
     institute_code = models.CharField(max_length=255, unique=True)
-
+    institute_desc = models.TextField()
     max_students = models.IntegerField()
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     teachers = models.ManyToManyField(User, related_name="institutes")
@@ -100,21 +100,23 @@ class Institute(models.Model):
 class Batch(models.Model):
     batch_name = models.CharField(max_length=255)
     batch_code = models.CharField(max_length=255, unique=True)
-    students = models.ManyToManyField(User, related_name="batches")
+    students = models.ManyToManyField(User, related_name="std_batches")
 
     batch_class = models.IntegerField()
     batch_subject = models.CharField(max_length=255)
 
     institute = models.ForeignKey(
-        Institute, on_delete=models.CASCADE, related_name="batches")
+        Institute, on_delete=models.CASCADE)
+
+    teacher = models.ManyToManyField(User, related_name="teacher_batches")
 
     history = HistoricalRecords()
 
 
 # Approve Requests
 class StudentRequest(models.Model):
-    batches = models.ManyToManyField(
-        Batch, related_name="requests")
+    batch = models.ForeignKey(
+        Batch, related_name="requests", on_delete=models.CASCADE)
 
     approved = models.BooleanField(default=False)
     student = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -142,6 +144,16 @@ class OtpTempData(models.Model):
     last_name = models.CharField(max_length=255)
     attempts = models.IntegerField(default=0)
 
+    created_at = models.DateTimeField(
+        auto_now_add=True)
+
+    history = HistoricalRecords()
+
+
+class LoginOtp(models.Model):
+    otp = models.IntegerField()
+    mobile = models.BigIntegerField()
+    attempts = models.IntegerField(default=0)
     created_at = models.DateTimeField(
         auto_now_add=True)
 
