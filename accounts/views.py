@@ -1,19 +1,8 @@
-from argparse import Action
-from ast import Delete
-from curses import initscr
-from distutils.file_util import move_file
-from distutils.log import error
-from email.policy import default
-from operator import eq
-from webbrowser import get
-from wsgiref import validate
-from django.shortcuts import render
 import random
 import string
 
 
 # Create your views here.
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -22,9 +11,10 @@ from rest_framework.permissions import IsAuthenticated
 
 
 # Custom
-from accounts.models import Batch, Institute, LoginOtp, OtpTempData, Student, StudentRequest, Teacher, TeacherRequest, User
+from accounts.models import LoginOtp, OtpTempData, User
 from accounts.utils import get_role, required_data, resp_fail, resp_success, user_created
 from .serializers import UserSerializer
+from institute.models import Batch, Institute, StudentRequest, TeacherRequest
 
 
 class Auth(ModelViewSet):
@@ -119,10 +109,11 @@ class Auth(ModelViewSet):
 
                         },
                         "message": "Account Already Exist...",
-                        "error_code": "301"
+                        "error_code": 301
                     })
 
                 else:
+
                     institute_exist = Institute.objects.filter(
                         user=request.user).exists()
 
@@ -179,6 +170,10 @@ class Auth(ModelViewSet):
 
         else:
             mobile, = req_data[1]
+
+        user_list = User.objects.filter(mobile=mobile)
+        if(not user_list.exists()):
+            return Response(resp_fail("No User Found With This Mobile"))
 
         LoginOtp.objects.filter(mobile=mobile).delete()
         login_otp = LoginOtp(

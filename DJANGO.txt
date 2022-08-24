@@ -1,0 +1,3 @@
+Python - 1. Django Rest
+	2.React (Redux)
+	 

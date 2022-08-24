@@ -21,6 +21,20 @@ class CustomUserManager(BaseUserManager):
 
         return user
 
+    def create_superuser(self, mobile, password, **extra_fields):
+
+        if(not mobile):
+            raise ValueError("Invalid Mobile Number...")
+
+        # Extra Fields
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+
+        user = self.model(mobile=mobile, password=password, **extra_fields)
+        user.save(using=self._db)
+
+        return user
+
 
 class StudentManager(BaseUserManager):
 
