@@ -9,7 +9,7 @@ class CustomUserManager(BaseUserManager):
     use_in_migrations = True
 
     def create_user(self, mobile, password, **extra_fields):
-        if(not mobile):
+        if (not mobile):
             raise ValueError("Invalid Mobile Number...")
 
         # Extra Fields

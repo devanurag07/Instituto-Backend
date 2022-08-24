@@ -6,6 +6,7 @@ __pycache__
 db.sqlite3
 media
 
+
 # Backup files # 
 *.bak 
 
@@ -50,6 +51,7 @@ atlassian-ide-plugin.xml
 *$py.class 
 
 # Distribution / packaging 
+instituto_env/
 .Python build/ 
 develop-eggs/ 
 dist/ 

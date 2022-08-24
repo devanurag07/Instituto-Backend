@@ -44,7 +44,7 @@ class Auth(ModelViewSet):
         req_data = required_data(data, ["mobile", "otp", "role"])
         has_errors = not req_data[0]
 
-        if(has_errors):
+        if (has_errors):
             errors = req_data[1]
 
             return Response(resp_fail("Required Parameters Missing (User) ", {
@@ -53,16 +53,16 @@ class Auth(ModelViewSet):
 
         otp_exists = OtpTempData.objects.filter(mobile=int(mobile)).exists()
 
-        if(otp_exists):
+        if (otp_exists):
             otp_temp = OtpTempData.objects.filter(mobile=int(mobile)).first()
 
             attempts_left = 5-otp_temp.attempts
-            if(attempts_left == 0):
+            if (attempts_left == 0):
                 otp_temp.delete()
 
                 return Response(resp_fail("OTP Attempts Exhausted.Try Resend.", error_code=311))
 
-            if(otp_temp.otp == otp):
+            if (otp_temp.otp == otp):
 
                 gen_password = ''.join(random.choices(string.ascii_uppercase +
                                                       string.digits, k=8))
@@ -97,22 +97,22 @@ class Auth(ModelViewSet):
     @action(methods=['POST'], detail=False, url_path="send_otp")
     def send_otp(self, request):
 
-        otp = random.randint(10000, 99999)
+        otp = random.randint(1000, 9999)
         user_data = self.serializer_class(data=request.data)
 
         # Handle Data Validation
         is_valid = user_data.is_valid()
 
-        if(is_valid):
+        if (is_valid):
             validated_data = user_data.validated_data
 
             mobile = validated_data.get("mobile", None)
             already_exist = User.objects.filter(mobile=mobile).exists()
 
-            if(already_exist):
+            if (already_exist):
                 user = User.objects.filter(mobile=mobile).first()
 
-                if(user.is_verified and user.is_created):
+                if (user.is_verified and user.is_created):
                     return Response({
                         "success": False,
                         "data": {
@@ -132,7 +132,7 @@ class Auth(ModelViewSet):
                     batch_exist = Batch.objects.filter(
                         teacher__id=request.user.id).exists()
 
-                    if(institute_exist or request_exist or batch_exist):
+                    if (institute_exist or request_exist or batch_exist):
                         return Response(resp_fail("Can't Create Your Account.", {}, 305))
                     else:
                         user.delete()
@@ -167,13 +167,13 @@ class Auth(ModelViewSet):
     @action(methods=['POST'], detail=False, url_path="get_login_otp")
     def get_login_otp(self, request):
 
-        otp = random.randint(10000, 99999)
+        otp = random.randint(1000, 9999)
         data = request.data
         req_data = required_data(data, ["mobile"])
 
         has_errors = not req_data[0]
 
-        if(has_errors):
+        if (has_errors):
             errors = req_data[1]
             return Response(resp_fail("Required Params Missing (User-Login)", {"errors": errors}, 401))
 
@@ -199,7 +199,7 @@ class Auth(ModelViewSet):
         req_data = required_data(data, ["mobile", "otp"])
 
         has_errors = not req_data[0]
-        if(has_errors):
+        if (has_errors):
             errors = req_data[1]
             return Response(resp_fail("Required Params Missing (User-Login)", {"errors": errors}, 401))
 
@@ -208,22 +208,22 @@ class Auth(ModelViewSet):
 
         user_list = User.objects.filter(mobile=mobile)
 
-        if(not user_list.exists()):
+        if (not user_list.exists()):
             return Response(resp_fail("No User Found With This Mobile"))
 
         user = user_list.first()
 
         otp_list = LoginOtp.objects.filter(mobile=mobile)
 
-        if(otp_list.exists()):
+        if (otp_list.exists()):
             login_otp = otp_list.first()
 
             attempts_left = 5-login_otp.attempts
-            if(attempts_left == 0):
+            if (attempts_left == 0):
                 login_otp.delete()
                 return Response(resp_fail("OTP Attempts Exhausted.Try Resend.", error_code=403))
 
-            if(login_otp.otp == int(otp)):
+            if (login_otp.otp == int(otp)):
 
                 LoginOtp.objects.filter(mobile=mobile).delete()
 
@@ -252,17 +252,17 @@ class AuthPost(ModelViewSet):
     serializer_class = UserSerializer
 
     def create(self, request):
-
+        print('\n', 'request data', request.data, '\n')
         user = request.user
         user_role = user.role
 
-        if(user_role == "Student"):
+        if (user_role == "Student"):
             data = request.data
 
             req_data = required_data(data, ['insitute_code', 'batches'])
             errors = not req_data[0]
 
-            if(errors):
+            if (errors):
                 error_msgs = req_data[1]
 
                 return Response(resp_fail("Required Parameters Missing .. (Student)", {
@@ -275,7 +275,7 @@ class AuthPost(ModelViewSet):
             institute_list = Institute.objects.filter(
                 institute_code=institute_code)
 
-            if(institute_list.exists()):
+            if (institute_list.exists()):
                 institute = institute_list.first()
 
             # student_request = StudentRequest(student=request.user)
@@ -284,7 +284,7 @@ class AuthPost(ModelViewSet):
                 batch_list = institute.batches.objects.filter(
                     batch_name=batch_name)
 
-                if(batch_list.exists()):
+                if (batch_list.exists()):
                     batch = batch_list.first()
                     StudentRequest.objects.get_or_create(
                         student=request.user, batch=batch)
@@ -297,7 +297,7 @@ class AuthPost(ModelViewSet):
 
             req_data = required_data(request.data, ["institute_code"])
 
-            if(req_data[0]):
+            if (req_data[0]):
                 #  ->  req_data=[..args]
                 institute_code = req_data[1][0]
             else:
@@ -314,7 +314,7 @@ class AuthPost(ModelViewSet):
             institute_list = Institute.objects.filter(
                 institute_code=institute_code)
 
-            if(institute_list.exists()):
+            if (institute_list.exists()):
                 # Getting Institute FROM list - list.first() -> list[0]
                 institute = institute_list.first()
             else:
@@ -323,7 +323,7 @@ class AuthPost(ModelViewSet):
             teacher_request, created = TeacherRequest.objects.get_or_create(
                 teacher=request.user)
 
-            if(created):
+            if (created):
 
                 user_created(request.user)
                 return Response(resp_success("Teacher Request Sent...", {}))
@@ -331,7 +331,7 @@ class AuthPost(ModelViewSet):
                 user_created(request.user)
                 return Response(resp_fail("Request Already There...", {}, 308))
 
-        elif(user_role == 'Owner'):
+        elif (user_role == 'Owner'):
 
             data = request.data
 
@@ -340,7 +340,7 @@ class AuthPost(ModelViewSet):
 
             errors = not req_data[0]
 
-            if(errors):
+            if (errors):
                 errors = req_data[1]
 
                 return Response(resp_fail("Required Parameters Missing (Owner)", {
@@ -352,7 +352,7 @@ class AuthPost(ModelViewSet):
 
                 institute_exists = Institute.objects.filter(owner=request.user)
 
-                if(institute_exists):
+                if (institute_exists):
                     return Response(resp_fail("You can't create institute...", {}, error_code=310))
 
                 institute = Institute(institute_code=institute_code, institute_name=institute_name,
