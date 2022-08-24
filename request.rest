@@ -1,8 +1,13 @@
 #########
-POST http://127.0.0.1:8000/api/auth/
+POST http://127.0.0.1:8000/api/auth/signup_otp_verify/
 Content-Type: application/json
 
 {
+
+ "mobile":9837664979,
+ "otp": 59205,
+ "role":"student"
+    
 
 }
 
@@ -11,6 +16,8 @@ POST http://127.0.0.1:8000/api/auth/send_otp/
 Content-Type: application/json
 
 {
+
+    "mobile":9837664979
 
 }
 

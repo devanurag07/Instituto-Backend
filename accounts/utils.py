@@ -73,3 +73,12 @@ def resp_fail(error_msg, data={}, error_code=401):
 def user_created(user):
     user.is_created = True
     user.save()
+
+
+def get_model(model, **args):
+    obj_list = model.objects.filter(**args)
+
+    if(obj_list.exists()):
+        return True, obj_list.first()
+
+    return False, []

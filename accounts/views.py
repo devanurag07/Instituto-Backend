@@ -3,7 +3,7 @@ import string
 
 
 # Create your views here.
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -12,18 +12,19 @@ from rest_framework.permissions import IsAuthenticated
 
 # Custom
 from accounts.models import LoginOtp, OtpTempData, User
-from accounts.utils import get_role, required_data, resp_fail, resp_success, user_created
+from accounts.utils import get_model, get_role, required_data, resp_fail, resp_success, user_created
 from .serializers import UserSerializer
-from institute.models import Batch, Institute, StudentRequest, TeacherRequest
+from institute.models import Batch, Institute, StudentRequest, Subject, TeacherRequest
 
 
-class Auth(ModelViewSet):
+class Auth(ViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
     # Step - 2
     # Verify and Create
-    def create(self, request, *args, **kwargs):
+    @action(methods=['POST'], detail=False, url_path="signup_otp_verify")
+    def signup_otp_verify(self, request, *args, **kwargs):
 
         # Verify Otp
         data = request.data
@@ -52,7 +53,7 @@ class Auth(ModelViewSet):
 
                 return Response(resp_fail("OTP Attempts Exhausted.Try Resend.", error_code=311))
 
-            if(otp_temp.otp == otp):
+            if(otp_temp.otp == int(otp)):
 
                 gen_password = ''.join(random.choices(string.ascii_uppercase +
                                                       string.digits, k=8))
@@ -357,3 +358,27 @@ class AuthPost(ModelViewSet):
 
                 user_created(request.user)
                 return Response(resp_success("Institute Created", {}))
+
+
+# class AuthUtils(ViewSet):
+
+#     @action
+#     def get_subjects(self, requests):
+#         data = requests.data
+#         success, req_data = required_data(data, ["institute_code", "class"])
+
+#         if(success):
+#             institute_code, class_ = req_data
+#         else:
+#             errors = req_data
+#             return resp_fail("Missing Arguments", {
+#                 "errors": errors
+#             }, 403)
+
+#         success, institute = get_model(
+#             Institute, institute_code=institute_code)
+
+#         if(not success):
+#             return Response(resp_fail("Institute Does Not Exists",{},error_code=404))
+
+#         Subject.objects.filter()
