@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from accounts.managers import CustomUserManager, StudentManager, OwnerManager, TeacherManager
 from accounts.roles import Roles
-from accounts.utils import _validate_mobile
+from .valdiators import _validate_mobile
 from simple_history.models import HistoricalRecords
 from django.utils import timezone
 # Create your models here.
@@ -17,6 +17,7 @@ class User(AbstractUser):
     mobile = models.BigIntegerField(
         blank=False, unique=True)
     USERNAME_FIELD = 'mobile'
+    REQUIRED_FIELDS = ["first_name", "last_name"]
 
     objects = CustomUserManager()
 
@@ -63,7 +64,6 @@ class Teacher(User):
 
     class Meta:
         proxy = True
-
 
 # OTP Models
 

@@ -4,30 +4,32 @@ Content-Type: application/json
 
 {
 
- "mobile":9837664979,
- "otp": 59205,
- "role":"student"
+ "mobile":9837654970,
+ "otp": 57746,
+ "role":"owner"
     
-
 }
 
 #########
-POST http://127.0.0.1:8000/api/auth/send_otp/
+POST http://127.0.0.1:8000/api/auth/get_signup_otp/
 Content-Type: application/json
 
 {
 
-    "mobile":9837664979
-
+    "mobile":9837654970,
+    "first_name":"Anurag",
+    "last_name":"Shakya"
 }
 
 ##############
 POST http://127.0.0.1:8000/api/initial/
 Content-Type: application/json
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU5OTMxNzM5LCJpYXQiOjE2NTk5MzE0MzksImp0aSI6Ijc5ZTA3MzA4OTJhYjQ2ZWQ5NTI3MjcyN2EyMjFhZTE4IiwidXNlcl9pZCI6MX0.Q1DmhkTBshJd_3V7WVdZsoOjV2G9RN9QTxEWsu5Kgm8
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjYxOTUyNjExLCJpYXQiOjE2NjE5NDkwMTEsImp0aSI6IjNjOTk1MjcxZjZiZjQ0NzFhOGU0MDk3NDQ1ZGE0MjUzIiwidXNlcl9pZCI6Nn0.tqh_3wOjuUulZo6b3aQh-ZPQ1drXnr69VIEVwIxO3n8
 
-{
-
+{ "institute_code": "afafds",
+    "institute_name": "Success Point",
+      "institute_desc": "DASFSFD ASF ASF",
+      "max_students": "4000"
 }
 
 ##############
@@ -35,7 +37,7 @@ POST http://127.0.0.1:8000/api/auth/get_login_otp/
 Content-Type: application/json
 
 {
-    "mobile":"9837664975"
+    "mobile":"9837654970"
 }
 
 
@@ -44,6 +46,85 @@ POST http://127.0.0.1:8000/api/auth/login_otp_verify/
 Content-Type: application/json
 
 {
-    "mobile":"9837664975",
-    "otp":"80591"
+    "mobile":"9837654970",
+    "otp":"28838"
 }
+##########
+{
+  "success": true,
+  "message": "OTP Verified Successfully",
+  "data": {
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjYxOTQ3MzkxLCJpYXQiOjE2NjE5NDcwOTEsImp0aSI6IjgzZDNjMWUzNDMyNzQ4Njc4ZWExMTA1ZDdjNjE2MmM5IiwidXNlcl9pZCI6Nn0.r0mUFkS8quIqm9qBP6kBeu50E8KtulsAy73b6ba3OwI",
+    "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY2NDUzOTA5MSwiaWF0IjoxNjYxOTQ3MDkxLCJqdGkiOiI2Nzk4Njc2YWNjZTE0ZTZhYTQyMzM0ZjM4MmQ0OTZkNiIsInVzZXJfaWQiOjZ9.0VZKkqy3CNuxVR_WYV-gyMhCGirooAQpMMXru8NKtA8"
+  },
+  "status_code": 200
+}
+
+
+
+# Subject API
+##############
+POST http://127.0.0.1:8000/api/subject/
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjYxOTUxMTU4LCJpYXQiOjE2NjE5NDc1NTgsImp0aSI6ImYxZWM1ZWRjNWU5NzRjNmM4MzM2NWFkN2UxMDM2Mjc1IiwidXNlcl9pZCI6Nn0.Rek3zTLcF5EpVbOIRA_2qbWokLXwRyQQaT-Q3oBC1KY
+
+{
+    "subject":"Maths"
+}
+
+
+
+################
+# cREATING tEACHER
+POST http://127.0.0.1:8000/api/auth/get_signup_otp/
+Content-Type: application/json
+
+{
+    "mobile":"8010741981",
+    "first_name":"Nihal",
+    "last_name":"Sharma"
+}
+
+
+# # Otp 
+# 73347
+
+
+########
+
+POST http://127.0.0.1:8000/api/auth/signup_otp_verify/
+Content-Type: application/json
+
+{
+    "mobile":"8010741981",
+    "otp":"73347",
+    "role":"teacher"
+}
+
+
+#########
+POST http://127.0.0.1:8000/api/initial/
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjYxOTUyMTEyLCJpYXQiOjE2NjE5NDg1MTIsImp0aSI6Ijk1ZjEwNmMzOWVjMDRiMDhhMjBhNTQwYjNjMDcwNDMxIiwidXNlcl9pZCI6N30.cdKzYNQfUsbs0e6xpKDWcTuP2-v3B9JNTMGN-f4XXEo
+
+{
+    "institute_code":"afafds"
+}
+
+
+
+#########
+POST http://127.0.0.1:8000/api/subject/assign_subjects/
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjYxOTUyNjExLCJpYXQiOjE2NjE5NDkwMTEsImp0aSI6IjNjOTk1MjcxZjZiZjQ0NzFhOGU0MDk3NDQ1ZGE0MjUzIiwidXNlcl9pZCI6Nn0.tqh_3wOjuUulZo6b3aQh-ZPQ1drXnr69VIEVwIxO3n8
+
+{
+    "teacher_id":"7",
+    "grades":["10"],
+    "subjects":["English"]
+
+}
+
+
+
+
