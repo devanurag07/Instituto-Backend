@@ -260,6 +260,14 @@ class AuthPost(ModelViewSet):
         user = request.user
         user_role = user.role
 
+        gender = request.data.get("gender", None)
+
+        try:
+            user.gender = gender.lower()
+            user.save()
+        except Exception as e:
+            return Response(resp_fail("Invalid Gender Value"))
+
         if(user_role == "Student"):
             data = request.data
 
@@ -410,7 +418,7 @@ class AuthCommon(ViewSet):
         institute = get_model(
             Institute, institute_code=institute_code)
 
-        if(institute["exist"]):
+        if(not institute["exist"]):
             return Response(resp_fail("Institute Does Not Exists", {}, error_code=404))
 
         institute = institute["data"]
