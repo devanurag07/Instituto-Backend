@@ -1,0 +1,7 @@
+POST http://127.0.0.1:8000/api/auth/send_otp/
+Content-Type: application/json
+
+{
+    "mobile":"9837664975"
+}
+

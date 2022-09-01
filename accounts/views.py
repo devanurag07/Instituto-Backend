@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-
+import pdb
 
 # Custom
 from accounts.models import LoginOtp, OtpTempData, User
@@ -29,10 +29,12 @@ class Auth(ModelViewSet):
         data = request.data
         mobile = data.get("mobile", None)
         otp = data.get("otp", None)
-        role = data.get("role", None)
 
         req_data = required_data(data, ["mobile", "otp", "role"])
         has_errors = not req_data[0]
+
+        if (User.objects.filter(mobile=int(mobile)).exists()):
+            return Response(resp_fail("User Already Exists. Try Login"), error_code="")
 
         if (has_errors):
             errors = req_data[1]
@@ -51,8 +53,8 @@ class Auth(ModelViewSet):
                 otp_temp.delete()
 
                 return Response(resp_fail("OTP Attempts Exhausted.Try Resend.", error_code=311))
-
-            if (otp_temp.otp == otp):
+            # pdb.set_trace()
+            if (otp_temp.otp == int(otp)):
 
                 gen_password = ''.join(random.choices(string.ascii_uppercase +
                                                       string.digits, k=8))
@@ -140,6 +142,7 @@ class Auth(ModelViewSet):
             return Response(
                 {
                     "success": True,
+                    "status_code": 200,
                     "data": {
                         "otp": otp_temp.otp
                     },
@@ -172,7 +175,7 @@ class Auth(ModelViewSet):
             mobile, = req_data[1]
 
         user_list = User.objects.filter(mobile=mobile)
-        if(not user_list.exists()):
+        if (not user_list.exists()):
             return Response(resp_fail("No User Found With This Mobile"))
 
         LoginOtp.objects.filter(mobile=mobile).delete()
