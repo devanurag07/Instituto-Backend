@@ -2,21 +2,8 @@ from multiprocessing import reduction
 import phonenumbers
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
+from accounts.models import User
 from accounts.roles import Roles
-
-
-def _validate_mobile(value):
-    try:
-        value = int(value)
-        length = len(str(value))
-        if(length != 10):
-            return False
-
-    except Exception as e:
-        return False
-
-    return True
 
 
 def get_role(role_name):
@@ -73,3 +60,22 @@ def resp_fail(error_msg, data={}, error_code=401):
 def user_created(user):
     user.is_created = True
     user.save()
+
+
+def get_model(model, **args):
+    obj_list = model.objects.filter(**args)
+
+    if(obj_list.exists()):
+        return {
+            "exist": True,
+            "data": obj_list.first()
+        }
+
+    return {
+        "exist": False,
+        "data": []
+    }
+
+
+def user_exists(mobile):
+    return User.objects.filter(mobile=mobile).exists()

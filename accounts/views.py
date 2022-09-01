@@ -1,40 +1,44 @@
+from pyexpat import ErrorString
 import random
 import string
 
 
 # Create your views here.
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-import pdb
+
 
 # Custom
 from accounts.models import LoginOtp, OtpTempData, User
-from accounts.utils import get_role, required_data, resp_fail, resp_success, user_created
-from .serializers import UserSerializer
-from institute.models import Batch, Institute, StudentRequest, TeacherRequest
+from accounts.services import create_institute
+from accounts.utils import get_model, get_role, required_data, resp_fail, resp_success, user_created, user_exists
+from .serializers import InstituteSerializer, UserSerializer
+from institute.models import Institute, StudentProfile, TeacherRequest
+from institute.serializers import SubjectSerialzier
+from batch.models import StudentRequest, Batch, Subject
+from batch.serializers import BatchSerializer
 
 
-class Auth(ModelViewSet):
+class Auth(ViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
     # Step - 2
     # Verify and Create
-    def create(self, request, *args, **kwargs):
+    @action(methods=['POST'], detail=False, url_path="signup_otp_verify")
+    def signup_otp_verify(self, request, *args, **kwargs):
 
         # Verify Otp
         data = request.data
         mobile = data.get("mobile", None)
         otp = data.get("otp", None)
+        role = data.get("role", None)
 
         req_data = required_data(data, ["mobile", "otp", "role"])
         has_errors = not req_data[0]
-
-        if (User.objects.filter(mobile=int(mobile)).exists()):
-            return Response(resp_fail("User Already Exists. Try Login"), error_code="")
 
         if (has_errors):
             errors = req_data[1]
@@ -42,6 +46,9 @@ class Auth(ModelViewSet):
             return Response(resp_fail("Required Parameters Missing (User) ", {
                 "errors": errors,
             }, error_code=301))
+
+        if (user_exists(mobile=int(mobile))):
+            return Response(resp_fail("User Already Exists..."), {}, 305)
 
         otp_exists = OtpTempData.objects.filter(mobile=int(mobile)).exists()
 
@@ -53,7 +60,7 @@ class Auth(ModelViewSet):
                 otp_temp.delete()
 
                 return Response(resp_fail("OTP Attempts Exhausted.Try Resend.", error_code=311))
-            # pdb.set_trace()
+
             if (otp_temp.otp == int(otp)):
 
                 gen_password = ''.join(random.choices(string.ascii_uppercase +
@@ -86,7 +93,7 @@ class Auth(ModelViewSet):
             return resp_fail("No OTP Exists.", {}, 304)
 
     # Step 1 -
-    @action(methods=['POST'], detail=False, url_path="send_otp")
+    @action(methods=['POST'], detail=False, url_path="get_signup_otp")
     def send_otp(self, request):
 
         otp = random.randint(1000, 9999)
@@ -142,7 +149,6 @@ class Auth(ModelViewSet):
             return Response(
                 {
                     "success": True,
-                    "status_code": 200,
                     "data": {
                         "otp": otp_temp.otp
                     },
@@ -250,14 +256,16 @@ class AuthPost(ModelViewSet):
     serializer_class = UserSerializer
 
     def create(self, request):
-        print('\n', 'request data', request.data, '\n')
+
         user = request.user
         user_role = user.role
 
         if (user_role == "Student"):
             data = request.data
 
-            req_data = required_data(data, ['insitute_code', 'batches'])
+            req_data = required_data(
+                data, ['insitute_code', 'batches', "father_name", "mother_name"])
+
             errors = not req_data[0]
 
             if (errors):
@@ -268,7 +276,7 @@ class AuthPost(ModelViewSet):
                 }))
 
             else:
-                institute_code, batches = req_data[1]
+                institute_code, batches, father_name, mother_name = req_data[1]
 
             institute_list = Institute.objects.filter(
                 institute_code=institute_code)
@@ -287,7 +295,15 @@ class AuthPost(ModelViewSet):
                     StudentRequest.objects.get_or_create(
                         student=request.user, batch=batch)
 
+            # Updating Profile
+            profile, created = StudentProfile.objects.get_or_create(
+                user=request.user)
+            profile.father_name = father_name
+            profile.mother_name = mother_name
+            profile.save()
+
             user_created(request.user)
+
             return Response(resp_success("Request Created", {}))
 
         elif user_role == "Teacher":
@@ -319,12 +335,15 @@ class AuthPost(ModelViewSet):
                 return Response(resp_fail("Institute Not Found", {}, 307))
 
             teacher_request, created = TeacherRequest.objects.get_or_create(
-                teacher=request.user)
+                teacher=request.user, defaults={
+                    "institute": institute
+                })
 
             if (created):
 
                 user_created(request.user)
                 return Response(resp_success("Teacher Request Sent...", {}))
+
             else:
                 user_created(request.user)
                 return Response(resp_fail("Request Already There...", {}, 308))
@@ -348,15 +367,83 @@ class AuthPost(ModelViewSet):
             else:
                 institute_code, institute_name, institute_desc, max_students = req_data[1]
 
-                institute_exists = Institute.objects.filter(owner=request.user)
-
+                institute_exists = Institute.objects.filter(
+                    owner=request.user).exists()
                 if (institute_exists):
                     return Response(resp_fail("You can't create institute...", {}, error_code=310))
 
-                institute = Institute(institute_code=institute_code, institute_name=institute_name,
-                                      institute_desc=institute_desc, max_students=max_students)
+                institute = create_institute({
+                    "institute_code": institute_code,
+                    "institute_name": institute_name,
+                    "institute_desc": institute_desc,
+                    "max_students": max_students
+                }, owner=request.user)
 
-                institute.save()
+                if (institute["created"]):
+                    user_created(request.user)
+                    return Response(resp_success("Institute Created"))
+                else:
+                    errors = institute["errors"]
 
-                user_created(request.user)
-                return Response(resp_success("Institute Created", {}))
+                    return Response(resp_fail("Invalid Arguments", data={
+                        "errors": errors
+                    }))
+
+
+class AuthCommon(ViewSet):
+
+    permission_classes = [IsAuthenticated]
+
+    @action(methods=["POST"], detail=False, url_path="get_institute_subjects")
+    def get_subjects(self, request):
+        data = request.data
+        success, req_data = required_data(data, ["institute_code"])
+
+        if (success):
+            institute_code, = req_data
+        else:
+            errors = req_data
+            return resp_fail("Missing Arguments", {
+                "errors": errors
+            }, 403)
+
+        institute = get_model(
+            Institute, institute_code=institute_code)
+
+        if (institute["exist"]):
+            return Response(resp_fail("Institute Does Not Exists", {}, error_code=404))
+
+        institute = institute["data"]
+        subjects = Subject.objects.filter(institute=institute)
+
+        return Response(resp_success("Institute Subjects Fetched", {
+            "subjects": SubjectSerialzier(subjects).data}))
+
+    @action(methods=["POST"], detail=False, url_path="get_institute_batches")
+    def get_batches(self, request):
+        data = request.data
+        success, req_data = required_data(
+            data, ["institute_code", "subjects", "grade"])
+
+        if (success):
+            institute_code, subjects, grade = req_data
+        else:
+            errors = req_data
+            return resp_fail("Missing Arguments", {
+                "errors": errors
+            }, 403)
+
+        institute = get_model(
+            Institute, institute_code=institute_code)
+
+        if (not institute["exist"]):
+            return Response(resp_fail("Institute Does Not Exists", {}, error_code=404))
+
+        institute = institute["data"]
+
+        batches = Batch.objects.filter(
+            institute=institute, batch_subject__subject_name__in=subjects, grade=grade)
+
+        return Response(resp_success("Batches Fetched Successfully", {
+            "batches": BatchSerializer(batches).data
+        }))

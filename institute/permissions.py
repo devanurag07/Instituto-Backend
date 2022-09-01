@@ -1,6 +1,8 @@
 from tkinter.messagebox import RETRY
 from rest_framework.permissions import BasePermission
 
+from institute.models import SubjectAccess
+
 
 class IsOwner(BasePermission):
 

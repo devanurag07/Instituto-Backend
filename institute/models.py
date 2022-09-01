@@ -27,35 +27,20 @@ CLASS_CHOICES = [
 class Subject(models.Model):
     subject_name = models.CharField(max_length=255)
     institute = models.ForeignKey(Institute, on_delete=models.CASCADE)
-
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-
-
-class Batch(models.Model):
-    batch_name = models.CharField(max_length=255)
-    batch_code = models.CharField(max_length=255, unique=True)
-    students = models.ManyToManyField(User, related_name="std_batches")
-
-    grade = models.CharField(
-        default="1", choices=CLASS_CHOICES, max_length=20)
-    batch_subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-
-    institute = models.ForeignKey(
-        Institute, on_delete=models.CASCADE)
-
-    teacher = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="teacher_batches")
 
     history = HistoricalRecords()
 
 
-# Approve Requests
-class StudentRequest(models.Model):
-    batch = models.ForeignKey(
-        Batch, related_name="requests", on_delete=models.CASCADE)
-
-    approved = models.BooleanField(default=False)
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
+class SubjectAccess(models.Model):
+    subject = models.ForeignKey(
+        Subject, on_delete=models.CASCADE, related_name="access_objects")
+    grade = models.CharField(
+        default="1", choices=CLASS_CHOICES, max_length=20)
+    teacher = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="subject_accesses")
+    created_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="given_accesses")
 
     history = HistoricalRecords()
 
@@ -89,5 +74,8 @@ class TeacherProfile(models.Model):
 class StudentProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="student_profile")
+
+    father_name = models.CharField(max_length=255, null=True)
+    mother_name = models.CharField(max_length=255, null=True)
 
     history = HistoricalRecords()

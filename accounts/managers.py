@@ -1,6 +1,6 @@
 from django.contrib.auth.base_user import BaseUserManager
 from accounts.roles import Roles
-from accounts.utils import _validate_mobile
+from accounts.valdiators import _validate_mobile
 from django.contrib.auth.hashers import make_password
 from django.db import models
 

@@ -1,5 +1,5 @@
 from dataclasses import field, fields
-from .models import Batch, Subject
+from .models import Subject, SubjectAccess
 from rest_framework.serializers import ModelSerializer
 
 
@@ -9,7 +9,7 @@ class SubjectSerialzier(ModelSerializer):
         fields = "__all__"
 
 
-class BatchSerializer(ModelSerializer):
+class SubjectAccessSerializer(ModelSerializer):
     class Meta:
-        moedel = Batch
+        model = SubjectAccess
         fields = "__all__"
