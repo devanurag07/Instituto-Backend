@@ -47,7 +47,7 @@ Content-Type: application/json
 
 {
     "mobile":"9837654970",
-    "otp":"28838"
+    "otp":"36713"
 }
 ##########
 {
@@ -66,7 +66,7 @@ Content-Type: application/json
 ##############
 POST http://127.0.0.1:8000/api/subject/
 Content-Type: application/json
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjYxOTUxMTU4LCJpYXQiOjE2NjE5NDc1NTgsImp0aSI6ImYxZWM1ZWRjNWU5NzRjNmM4MzM2NWFkN2UxMDM2Mjc1IiwidXNlcl9pZCI6Nn0.Rek3zTLcF5EpVbOIRA_2qbWokLXwRyQQaT-Q3oBC1KY
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjYxOTU2MjQzLCJpYXQiOjE2NjE5NTI2NDMsImp0aSI6IjcwYjlkZTY4MjcxNzQ3NzhhMGI2YTQ4MmMwMTY5NWMzIiwidXNlcl9pZCI6Nn0.lAOFmES9kqYzJtn1TRP2UCNVTekef1ApsGCsThgFU-s
 
 {
     "subject":"Maths"
@@ -116,12 +116,12 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiY
 #########
 POST http://127.0.0.1:8000/api/subject/assign_subjects/
 Content-Type: application/json
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjYxOTUyNjExLCJpYXQiOjE2NjE5NDkwMTEsImp0aSI6IjNjOTk1MjcxZjZiZjQ0NzFhOGU0MDk3NDQ1ZGE0MjUzIiwidXNlcl9pZCI6Nn0.tqh_3wOjuUulZo6b3aQh-ZPQ1drXnr69VIEVwIxO3n8
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjYxOTU2MjQzLCJpYXQiOjE2NjE5NTI2NDMsImp0aSI6IjcwYjlkZTY4MjcxNzQ3NzhhMGI2YTQ4MmMwMTY5NWMzIiwidXNlcl9pZCI6Nn0.lAOFmES9kqYzJtn1TRP2UCNVTekef1ApsGCsThgFU-s
 
 {
     "teacher_id":"7",
-    "grades":["10"],
-    "subjects":["English"]
+    "grades":["11"],
+    "subjects":["Maths"]
 
 }
 

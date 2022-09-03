@@ -1,3 +1,4 @@
+from distutils.log import error
 from pyexpat import ErrorString
 import random
 import string
@@ -14,9 +15,9 @@ from rest_framework.permissions import IsAuthenticated
 # Custom
 from accounts.models import LoginOtp, OtpTempData, User
 from accounts.services import create_institute
-from accounts.utils import get_model, get_role, required_data, resp_fail, resp_success, user_created, user_exists
-from .serializers import InstituteSerializer, UserSerializer
-from institute.models import Institute, StudentProfile, TeacherRequest
+from accounts.utils import get_model, get_role, required_data, resp_fail, resp_success, set_email, update_profile, user_created, user_exists
+from .serializers import EmailSerializer, InstituteSerializer, UserSerializer
+from institute.models import Institute, OwnerProfile, StudentProfile, TeacherRequest
 from institute.serializers import SubjectSerialzier
 from batch.models import StudentRequest, Batch, Subject
 from batch.serializers import BatchSerializer
@@ -48,7 +49,7 @@ class Auth(ViewSet):
             }, error_code=301))
 
         if(user_exists(mobile=int(mobile))):
-            return Response(resp_fail("User Already Exists..."), {}, 305)
+            return Response(resp_fail("User Already Exists...", {}, 302))
 
         otp_exists = OtpTempData.objects.filter(mobile=int(mobile)).exists()
 
@@ -59,7 +60,7 @@ class Auth(ViewSet):
             if(attempts_left == 0):
                 otp_temp.delete()
 
-                return Response(resp_fail("OTP Attempts Exhausted.Try Resend.", error_code=311))
+                return Response(resp_fail("OTP Attempts Exhausted.Try Resend.", error_code=303))
 
             if(otp_temp.otp == int(otp)):
 
@@ -87,10 +88,10 @@ class Auth(ViewSet):
                 otp_temp.attempts += 1
                 otp_temp.save()
 
-                return Response(resp_fail("Wrong OTP Input...", error_code=302))
+                return Response(resp_fail("Wrong OTP Input...", error_code=304))
 
         else:
-            return resp_fail("No OTP Exists.", {}, 304)
+            return Response(resp_fail("No OTP Exists.", {}, 305))
 
     # Step 1 -
     @action(methods=['POST'], detail=False, url_path="get_signup_otp")
@@ -112,14 +113,7 @@ class Auth(ViewSet):
                 user = User.objects.filter(mobile=mobile).first()
 
                 if(user.is_verified and user.is_created):
-                    return Response({
-                        "success": False,
-                        "data": {
-
-                        },
-                        "message": "Account Already Exist...",
-                        "error_code": 301
-                    })
+                    return Response(resp_fail("User Already Exists ", error_code=401))
 
                 else:
 
@@ -133,7 +127,7 @@ class Auth(ViewSet):
                         teacher__id=request.user.id).exists()
 
                     if(institute_exist or request_exist or batch_exist):
-                        return Response(resp_fail("Can't Create Your Account.", {}, 305))
+                        return Response(resp_fail("Can't Create Your Account.", {}, 402))
                     else:
                         user.delete()
 
@@ -162,7 +156,7 @@ class Auth(ViewSet):
             return Response(resp_fail("Invalid or Missing User Data", {
                 "errors": errors,
 
-            }, 303))
+            }, 403))
 
     @action(methods=['POST'], detail=False, url_path="get_login_otp")
     def get_login_otp(self, request):
@@ -175,14 +169,14 @@ class Auth(ViewSet):
 
         if(has_errors):
             errors = req_data[1]
-            return Response(resp_fail("Required Params Missing (User-Login)", {"errors": errors}, 401))
+            return Response(resp_fail("Required Params Missing (User-Login)", {"errors": errors}, 501))
 
         else:
             mobile, = req_data[1]
 
         user_list = User.objects.filter(mobile=mobile)
         if(not user_list.exists()):
-            return Response(resp_fail("No User Found With This Mobile"))
+            return Response(resp_fail("No User Found With This Mobile", error_code=502))
 
         LoginOtp.objects.filter(mobile=mobile).delete()
         login_otp = LoginOtp(
@@ -205,7 +199,7 @@ class Auth(ViewSet):
         has_errors = not req_data[0]
         if(has_errors):
             errors = req_data[1]
-            return Response(resp_fail("Required Params Missing (User-Login)", {"errors": errors}, 401))
+            return Response(resp_fail("Required Params Missing (User-Login)", {"errors": errors}, 601))
 
         else:
             mobile, otp = req_data[1]
@@ -213,7 +207,7 @@ class Auth(ViewSet):
         user_list = User.objects.filter(mobile=mobile)
 
         if(not user_list.exists()):
-            return Response(resp_fail("No User Found With This Mobile"))
+            return Response(resp_fail("No User Found With This Mobile", error_code=602))
 
         user = user_list.first()
 
@@ -225,7 +219,7 @@ class Auth(ViewSet):
             attempts_left = 5-login_otp.attempts
             if(attempts_left == 0):
                 login_otp.delete()
-                return Response(resp_fail("OTP Attempts Exhausted.Try Resend.", error_code=403))
+                return Response(resp_fail("OTP Attempts Exhausted.Try Resend.", error_code=603))
 
             if(login_otp.otp == int(otp)):
 
@@ -243,10 +237,10 @@ class Auth(ViewSet):
                 login_otp.attempts += 1
                 login_otp.save()
                 attempts_left = 5-login_otp.attempts
-                return Response(resp_fail(f"Wrong Otp {attempts_left} Attempts Left", error_code=404))
+                return Response(resp_fail(f"Wrong Otp {attempts_left} Attempts Left", error_code=605))
 
         else:
-            return Response(resp_fail("No OTP Found", {}, 402))
+            return Response(resp_fail("No OTP Found", {}, 604))
 
 
 # after user created -- profile creation - institute creation - request creation
@@ -260,31 +254,52 @@ class AuthPost(ModelViewSet):
         user = request.user
         user_role = user.role
 
-        gender = request.data.get("gender", None)
+        # common fields
 
-        try:
-            user.gender = gender.lower()
-            user.save()
-        except Exception as e:
-            return Response(resp_fail("Invalid Gender Value"))
+        req_fields_dict = {
+            "student": ['insitute_code', 'batches', "father_name", "mother_name"],
+            "teacher": ["institute_code", "about_me", "email"],
+            "owner": ["institute_code", "institute_name", "institute_desc",
+                      "max_students", "email", "about_me", "location"]
+
+        }
+
+        data = request.data
+        # "user.role.lower() => student,owner,teacher"
+        success, req_data = required_data(
+            data, req_fields_dict[user.role.lower()])
+
+        # Setting Gender
+        gender = data.get("gender", None)
+        extra_errors = {}
+        if(gender == None):
+            extra_errors = {
+                "gender": "Gender Required"
+            }
+        elif(not(gender in ["male", "female", "other"])):
+            extra_errors = {
+                "gender": "Invalid Gender Value"
+            }
+
+        if(not success):
+            errors = req_data
+            errors.update(extra_errors)
+
+            return Response(resp_fail(f"Required Parameters Missing ({user.role.upper()})", {
+                "errors": errors,
+            }, 309))
+
+        elif len(extra_errors.keys()) != 0:
+            return Response(resp_fail(f"Required Parameters Missing ({user.role.upper()})", {
+                "errors": extra_errors,
+            }, 310))
+
+        user.gender = gender
+        user.save()
 
         if(user_role == "Student"):
-            data = request.data
 
-            req_data = required_data(
-                data, ['insitute_code', 'batches', "father_name", "mother_name"])
-
-            errors = not req_data[0]
-
-            if(errors):
-                error_msgs = req_data[1]
-
-                return Response(resp_fail("Required Parameters Missing .. (Student)", {
-                    "errors": error_msgs
-                }))
-
-            else:
-                institute_code, batches, father_name, mother_name = req_data[1]
+            institute_code, batches, father_name, mother_name = req_data
 
             institute_list = Institute.objects.filter(
                 institute_code=institute_code)
@@ -315,23 +330,8 @@ class AuthPost(ModelViewSet):
             return Response(resp_success("Request Created", {}))
 
         elif user_role == "Teacher":
-            data = request.data
 
-            req_data = required_data(request.data, ["institute_code"])
-
-            if(req_data[0]):
-                #  ->  req_data=[..args]
-                institute_code = req_data[1][0]
-            else:
-                # ->  req_data={field:error}
-
-                errors = req_data[1]
-
-                resp = resp_fail("Institute Code Not Provided (Teacher)", {
-                    "errors": errors
-                }, 306)
-
-                return Response(resp)
+            institute_code, about_me, email = req_data
 
             institute_list = Institute.objects.filter(
                 institute_code=institute_code)
@@ -342,6 +342,16 @@ class AuthPost(ModelViewSet):
             else:
                 return Response(resp_fail("Institute Not Found", {}, 307))
 
+            # Updating Profile Data
+            update_profile(user, data={
+                "about_me": about_me
+            })
+            email_set, errors = set_email(user, email)
+            if(not email_set):
+                return Response(resp_fail("Invalid Email", {
+                    "errors": errors
+                }, error_code=801))
+
             teacher_request, created = TeacherRequest.objects.get_or_create(
                 teacher=request.user, defaults={
                     "institute": institute
@@ -350,52 +360,53 @@ class AuthPost(ModelViewSet):
             if(created):
 
                 user_created(request.user)
+
                 return Response(resp_success("Teacher Request Sent...", {}))
 
             else:
+                # Set User Created True
                 user_created(request.user)
                 return Response(resp_fail("Request Already There...", {}, 308))
 
         elif(user_role == 'Owner'):
+            institute_code, institute_name, institute_desc, max_students, email, about_me, location = req_data
 
-            data = request.data
+            institute_exists = Institute.objects.filter(
+                owner=request.user).exists()
+            if(institute_exists):
+                return Response(resp_fail("You can't create institute...", {}, error_code=310))
 
-            req_data = required_data(
-                data, ["institute_code", "institute_name", "institute_desc", "max_students"])
+            # Updating Profile Data
+            update_profile(user, data={
+                "location": location,
+                "about_me": about_me
+            })
 
-            errors = not req_data[0]
+            email_set, errors = set_email(user, email)
+            if(not email_set):
+                return Response(resp_fail("Invalid Email", {
+                    "errors": errors
+                }, error_code=801))
 
-            if(errors):
-                errors = req_data[1]
+            institute = create_institute({
+                "institute_code": institute_code,
+                "institute_name": institute_name,
+                "institute_desc": institute_desc,
+                "max_students": max_students
+            }, owner=request.user)
 
-                return Response(resp_fail("Required Parameters Missing (Owner)", {
-                    "errors": errors,
-                }, 309))
+            if(institute["created"]):
+
+                user_created(request.user)
+
+                return Response(resp_success("Institute Created"))
 
             else:
-                institute_code, institute_name, institute_desc, max_students = req_data[1]
 
-                institute_exists = Institute.objects.filter(
-                    owner=request.user).exists()
-                if(institute_exists):
-                    return Response(resp_fail("You can't create institute...", {}, error_code=310))
-
-                institute = create_institute({
-                    "institute_code": institute_code,
-                    "institute_name": institute_name,
-                    "institute_desc": institute_desc,
-                    "max_students": max_students
-                }, owner=request.user)
-
-                if(institute["created"]):
-                    user_created(request.user)
-                    return Response(resp_success("Institute Created"))
-                else:
-                    errors = institute["errors"]
-
-                    return Response(resp_fail("Invalid Arguments", data={
-                        "errors": errors
-                    }))
+                errors = institute["errors"]
+                return Response(resp_fail("Invalid Arguments", data={
+                    "errors": errors
+                }, error_code=323))
 
 
 class AuthCommon(ViewSet):

@@ -1,16 +1,19 @@
 from distutils import errors
-from rest_framework.viewsets import ModelViewSet
+from pydoc import ModuleScanner
+from rest_framework.viewsets import ModelViewSet, ViewSet
 from accounts.services import assign_subjects
 from accounts.utils import get_model, required_data, resp_fail, resp_success
 from institute.models import Institute, Subject, SubjectAccess, TeacherRequest
 from institute.permissions import IsOwner
 from institute.serializers import SubjectAccessSerializer
-from institute.services import create_subject, get_insitute
+from institute.services import create_subject, get_insitute, get_teacher_requests
 # Create your views here.
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from accounts.models import Teacher, User
+from rest_framework.views import APIView
+from accounts.models import Owner, Teacher, User
+from accounts.utils import get_model
 
 # Owner
 
@@ -88,3 +91,23 @@ class SubjectApi(ModelViewSet):
             "Subject Access Provided Successfully", {
                 "subject_accs": data
             }), 201)
+
+
+class InstituteApi(ViewSet):
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    @action(methods=["GET"], detail=False, url_path="teacher_requests")
+    def get_teacher_requests(self, request, *args, **kwargs):
+        user = request.user
+        institute = get_model(Institute, owner=user)
+
+        if(not institute["exist"]):
+            return Response(resp_fail("Your Account isn't created properly", error_code=4001))
+
+        institute = institute["data"]
+
+        teacher_reqs_data = get_teacher_requests(institute)
+
+        return Response(resp_success("Teacher Request Fetched", {
+            "data": teacher_reqs_data
+        }))

@@ -48,10 +48,12 @@ INSTALLED_APPS = [
     "accounts.apps.AccountsConfig",
     "institute",
     'simple_history',
-    "batch"
+    "batch",
+    "corsheaders"
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -168,3 +170,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 AUTH_USER_MODEL = 'accounts.User'
+
+
+CORS_ALLOW_ALL_ORIGINS = True

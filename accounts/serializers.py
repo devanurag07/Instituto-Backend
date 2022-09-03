@@ -6,6 +6,7 @@ from accounts.valdiators import _validate_mobile
 from rest_framework import serializers
 
 from institute.models import Institute
+from rest_framework.validators import UniqueValidator
 
 
 class UserSerializer(ModelSerializer):
@@ -30,3 +31,9 @@ class InstituteSerializer(ModelSerializer):
         model = Institute
         fields = ["institute_name", "institute_name",
                   "institute_desc", "max_students", "institute_code"]
+
+
+class EmailSerializer(serializers.Serializer):
+    # ...
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())])
