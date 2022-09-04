@@ -59,14 +59,17 @@ class TeacherRequest(models.Model):
 class OwnerProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="owner_profile")
+
+    about_me = models.CharField(max_length=255, blank=True)
+    location = models.CharField(max_length=255, blank=True)
+
     history = HistoricalRecords()
 
 
 class TeacherProfile(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="teacher_profile")
-
-    institute = models.ForeignKey(Institute, on_delete=models.CASCADE)
+    about_me = models.CharField(max_length=255, blank=True)
 
     history = HistoricalRecords()
 

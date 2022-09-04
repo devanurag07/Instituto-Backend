@@ -1,12 +1,16 @@
-from dataclasses import dataclass
+from asyncore import read
+from dataclasses import dataclass, fields
+from pickletools import read_floatnl
 from re import sub
+from turtle import Turtle
 from xmlrpc.client import FastParser
 from accounts.models import Owner, User
+from accounts.serializers import UserSerializer
 from accounts.utils import resp_fail, resp_success
-from .models import Institute, Subject, SubjectAccess
+from .models import Institute, Subject, SubjectAccess, TeacherRequest
 from .serializers import SubjectSerialzier
-resp_success
-resp_fail
+from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 
 
 def get_insitute(owner):
@@ -74,3 +78,19 @@ def has_subject_perm(subject, teacher):
 
     else:
         return False
+
+
+# Institute
+def get_teacher_requests(institute):
+    teacher_requests = TeacherRequest.objects.filter(
+        institute=institute, approved=False)
+
+    class TeacherRequestSerializer(ModelSerializer):
+        teacher = UserSerializer(many=False, read_only=True)
+
+        class Meta:
+            model = TeacherRequest
+            fields = "__all__"
+
+    data = TeacherRequestSerializer(teacher_requests, many=True).data
+    return data

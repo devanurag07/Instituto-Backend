@@ -28,6 +28,14 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     is_created = models.BooleanField(default=False)
 
+    class GenderChoices(models.TextChoices):
+        MALE = "male", "Male"
+        FEMALE = "female", "Female"
+        OTHER = "other", "Other"
+
+    gender = models.CharField(
+        max_length=255, choices=GenderChoices.choices, default=GenderChoices.MALE)
+
     history = HistoricalRecords()
 
     def __str__(self) -> str:
