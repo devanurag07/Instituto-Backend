@@ -21,6 +21,7 @@ from institute.models import Institute, OwnerProfile, StudentProfile, TeacherReq
 from institute.serializers import SubjectSerialzier
 from batch.models import StudentRequest, Batch, Subject
 from batch.serializers import BatchSerializer
+from django.core import serializers
 
 
 class Auth(ViewSet):
@@ -436,7 +437,7 @@ class AuthCommon(ViewSet):
         subjects = Subject.objects.filter(institute=institute)
 
         return Response(resp_success("Institute Subjects Fetched", {
-            "subjects": SubjectSerialzier(subjects).data}))
+            "subjects": list(subjects)}))
 
     @action(methods=["POST"], detail=False, url_path="get_institute_batches")
     def get_batches(self, request):
@@ -445,6 +446,7 @@ class AuthCommon(ViewSet):
             data, ["institute_code", "subjects", "grade"])
 
         if (success):
+            print('somethin')
             institute_code, subjects, grade = req_data
         else:
             errors = req_data
@@ -462,7 +464,6 @@ class AuthCommon(ViewSet):
 
         batches = Batch.objects.filter(
             institute=institute, batch_subject__subject_name__in=subjects, grade=grade)
-
         return Response(resp_success("Batches Fetched Successfully", {
             "batches": BatchSerializer(batches).data
         }))
