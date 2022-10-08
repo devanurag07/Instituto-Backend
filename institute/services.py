@@ -1,3 +1,4 @@
+from ast import Pass
 from asyncore import read
 from dataclasses import dataclass, fields
 from pickletools import read_floatnl
@@ -6,9 +7,9 @@ from turtle import Turtle
 from xmlrpc.client import FastParser
 from accounts.models import Owner, User
 from accounts.serializers import UserSerializer
-from accounts.utils import resp_fail, resp_success
+from accounts.utils import get_model, resp_fail, resp_success
 from .models import Institute, Subject, SubjectAccess, TeacherRequest
-from .serializers import SubjectSerialzier
+from .serializers import SubjectAccessSerializer, SubjectSerialzier
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 
@@ -80,7 +81,7 @@ def has_subject_perm(subject, teacher):
         return False
 
 
-# Institute
+# Institute (OWNER)
 def get_teacher_requests(institute):
     teacher_requests = TeacherRequest.objects.filter(
         institute=institute, approved=False)
@@ -94,3 +95,95 @@ def get_teacher_requests(institute):
 
     data = TeacherRequestSerializer(teacher_requests, many=True).data
     return data
+
+
+def assign_subjects(teacher, subjects, grades, institute):
+    # Get Error List
+    errors = {
+
+    }
+
+    class SubjectAccSerializer(ModelSerializer):
+        class Meta:
+            model = SubjectAccess
+            fields = ["subject", "grade"]
+    # Validating Every Subject and Grade
+    for grade in grades:
+
+        # Looping Through all subject in grade
+        for subject_name in subjects:
+            subject = get_model(
+                Subject, subject_name=subject_name, institute=institute)
+
+            if(subject["exist"]):
+                subject = subject["data"]
+                subject_acc = SubjectAccSerializer(
+                    data={"subject": subject.id, "grade": grade})
+
+                if(subject_acc.is_valid()):
+                    pass
+                else:
+                    form_errors = subject_acc.errors
+                    grade_error = form_errors.get("grade", None)
+                    sub_error = form_errors.get("subject", None)
+
+                    errors.setdefault(grade, {})
+                    errors[grade]["error"] = grade_error
+                    errors[grade][subject_name] = sub_error
+
+            else:
+                errors.setdefault(grade, {})
+                errors[grade][subject_name] = "Subject Does Not Exist..."
+            # It will give nicely documented errors -x - close
+
+    if(len(errors.keys()) != 0):
+        print(errors)
+        return False, {
+            "errors": errors
+        }
+
+    # Create New Access List
+    prev_accs = SubjectAccess.objects.filter(
+        teacher=teacher, subject__institute=institute)
+    prev_accs.delete()
+
+    subject_acc_data = []
+    for grade in grades:
+        for subject_name in subjects:
+            subject = get_model(
+                Subject, subject_name=subject_name, institute=institute)
+
+            subject = subject["data"]
+
+            subject_acc, created = SubjectAccess.objects.get_or_create(
+                subject=subject, grade=grade, defaults={
+                    "teacher": teacher,
+                    "created_by": institute.owner
+                })
+
+            subject_data = SubjectAccessSerializer(
+                subject_acc, many=False).data
+
+            subject_acc_data.append(subject_data)
+
+    return True, subject_acc_data
+
+
+def get_teachers_data(institute):
+    class TeacherSerializer(ModelSerializer):
+        class Meta:
+            model = User
+            fields = "__all__"
+
+    teacher_reqs = TeacherRequest.objects.filter(
+        approved=True, institute=institute)
+
+    teachers = [request_dict["teacher"]
+                for request_dict in teacher_reqs.values('teacher')]
+
+    if(len(teachers) == 0):
+        return []
+
+    teachers_data = TeacherSerializer(teachers, many=True).data
+
+    return teachers_data

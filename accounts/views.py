@@ -422,9 +422,9 @@ class AuthCommon(ViewSet):
             institute_code, = req_data
         else:
             errors = req_data
-            return resp_fail("Missing Arguments", {
+            return Response(resp_fail("Missing Arguments", {
                 "errors": errors
-            }, 403)
+            }, 403))
 
         institute = get_model(
             Institute, institute_code=institute_code)
@@ -434,9 +434,10 @@ class AuthCommon(ViewSet):
 
         institute = institute["data"]
         subjects = Subject.objects.filter(institute=institute)
+        serialized = SubjectSerialzier(subjects, many=True)
 
         return Response(resp_success("Institute Subjects Fetched", {
-            "subjects": SubjectSerialzier(subjects).data}))
+            "subjects": serialized.data}))
 
     @action(methods=["POST"], detail=False, url_path="get_institute_batches")
     def get_batches(self, request):
@@ -448,9 +449,9 @@ class AuthCommon(ViewSet):
             institute_code, subjects, grade = req_data
         else:
             errors = req_data
-            return resp_fail("Missing Arguments", {
+            return Response(resp_fail("Missing Arguments", {
                 "errors": errors
-            }, 403)
+            }, 403))
 
         institute = get_model(
             Institute, institute_code=institute_code)
@@ -464,5 +465,5 @@ class AuthCommon(ViewSet):
             institute=institute, batch_subject__subject_name__in=subjects, grade=grade)
 
         return Response(resp_success("Batches Fetched Successfully", {
-            "batches": BatchSerializer(batches).data
+            "batches": BatchSerializer(batches, many=True).data
         }))
