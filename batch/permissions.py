@@ -5,11 +5,15 @@ class BatchCreatePermission(BasePermission):
     def has_permission(self, request, view):
         user = request.user
 
-        role = request.user.role.lower()
+        role = user.role.lower()
         if(role == "owner"):
             return True
 
         if(role == "teacher"):
-            data = request.data
-
             return True
+
+
+class IsUserAuthenticated(BasePermission):
+    def has_permission(self, request, view):
+        return (bool(request.user and request.user.is_authenticated) and
+                request.user.is_created)

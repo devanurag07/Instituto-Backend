@@ -1,23 +1,17 @@
-from distutils import errors
-from pydoc import ModuleScanner
 from rest_framework.viewsets import ModelViewSet, ViewSet
-from accounts.serializers import UserSerializer
 from accounts.utils import get_model, required_data, resp_fail, resp_success
-from institute.models import Institute, Subject, SubjectAccess, TeacherRequest
+from institute.models import Institute, Subject, TeacherRequest
 from institute.permissions import IsOwner
-from institute.serializers import SubjectAccessSerializer
 from institute.services import create_subject, get_insitute, get_teacher_requests, assign_subjects, get_teachers_data
 # Create your views here.
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.views import APIView
-from accounts.models import Owner, Teacher, User
+from accounts.models import User
 from accounts.utils import get_model
 
+
 # Owner
-
-
 class SubjectApi(ModelViewSet):
 
     permission_classes = [IsAuthenticated, IsOwner]
@@ -38,7 +32,7 @@ class SubjectApi(ModelViewSet):
                 "errors": errors
             }, 501))
 
-        subject, = req_data
+        subject, = req_data  # (subject,)
         resp = create_subject(subject=subject, owner=request.user)
 
         return Response(resp)
@@ -126,5 +120,4 @@ class InstituteApi(ViewSet):
         institute = institute["data"]
 
         teachers_data = get_teachers_data(institute=institute)
-
         return teachers_data
