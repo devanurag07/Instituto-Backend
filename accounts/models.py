@@ -39,7 +39,7 @@ class User(AbstractUser):
     history = HistoricalRecords()
 
     def __str__(self) -> str:
-        return f"m-{self.mobile}"
+        return f"m-{self.first_name + ' '+ self.last_name} Role: {self.role}"
 
     def save(self, *args, **kwargs):
         if not self.pk:

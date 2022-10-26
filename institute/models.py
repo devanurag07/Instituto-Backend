@@ -14,6 +14,9 @@ class Institute(models.Model):
     owner = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="institute")
 
+    teachers = models.ManyToManyField(
+        User, related_name="institutes")
+
     # [One teacher can have one institute ]
     history = HistoricalRecords()
 

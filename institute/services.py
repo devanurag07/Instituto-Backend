@@ -15,6 +15,7 @@ from rest_framework import serializers
 
 
 def get_insitute(owner):
+    """Gives The Institute Attached to Owner"""
     institute_list = Institute.objects.filter(owner=owner)
     if(institute_list.exists()):
         return {
@@ -29,9 +30,10 @@ def get_insitute(owner):
 
 
 def create_subject(subject, owner):
+    """Creates Subject [English,Science,Etc] Object 
+    for Institute of owner"""
 
     institute = get_insitute(owner=owner)
-
     if(institute["exist"]):
         subject, created = Subject.objects.get_or_create(
             subject_name=subject, institute=institute["data"], defaults={
@@ -51,14 +53,18 @@ def create_subject(subject, owner):
 
 # Teacher
 def get_assigned_subjects(teacher):
-    subjects = SubjectAccess.objects.filter(teacher=teacher)
-    if(subjects.exists()):
+    """
+    Gives the 'data' = subject access objects [list] of teacher
+    and All The Different Institutes A Teacher Is Working In"""
+
+    subjects_accs = SubjectAccess.objects.filter(teacher=teacher)
+    if(subjects_accs.exists()):
         institutes = set(
-            [subject.created_by.institute for subject in subjects])
+            [subject.created_by.institute for subject in subjects_accs])
 
         return {
             'success': True,
-            'data': subjects,
+            'data': subjects_accs,
             'institutes': institutes
         }
 
@@ -69,9 +75,13 @@ def get_assigned_subjects(teacher):
 
 
 def has_subject_perm(subject, teacher):
+    """
+    Returns True if teacher has perm or access to subject
+    otherwise False
+    """
+
     subject_accs = get_assigned_subjects(teacher=teacher)
     if(subject_accs["success"]):
-
         subjects = [subject_acc.subject for subject_acc in subject_accs['data']]
         if(subject in subjects):
             return True
@@ -83,6 +93,10 @@ def has_subject_perm(subject, teacher):
 
 # Institute (OWNER)
 def get_teacher_requests(institute):
+    """Gets all the requests sent by Teachers
+     to Institute 
+
+     Return TecherRequests Seriliazed Data"""
     teacher_requests = TeacherRequest.objects.filter(
         institute=institute, approved=False)
 
@@ -98,6 +112,15 @@ def get_teacher_requests(institute):
 
 
 def assign_subjects(teacher, subjects, grades, institute):
+    """
+        Checks Every Subject of Grade [nested loop] 
+        for errors
+        When Every Subject And Grade Is Valid
+
+        returns True,Subject Access Data
+
+    """
+
     # Get Error List
     errors = {
 
@@ -109,7 +132,6 @@ def assign_subjects(teacher, subjects, grades, institute):
             fields = ["subject", "grade"]
     # Validating Every Subject and Grade
     for grade in grades:
-
         # Looping Through all subject in grade
         for subject_name in subjects:
             subject = get_model(

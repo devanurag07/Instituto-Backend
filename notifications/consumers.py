@@ -39,7 +39,7 @@ class InstituteNotifications(AsyncJsonWebsocketConsumer):
                  "error": "You are not owner"}
             )
 
-        await self.channel_layer.group_send(self.group_name,)
+        await self.channel_layer.group_send(self.group_name, {"type": event_type, "message": ""})
 
     @database_sync_to_async
     def get_role(self):

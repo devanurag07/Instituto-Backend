@@ -1,3 +1,4 @@
+import os
 from distutils.command.upload import upload
 from email.policy import default
 from pyexpat import model
@@ -48,8 +49,11 @@ class StudentRequest(models.Model):
 
     history = HistoricalRecords()
 
+# MSG API
 
 # Personal Conversation
+
+
 class Message(models.Model):
     message = models.TextField()
     sender = models.ForeignKey(
@@ -87,4 +91,32 @@ class Blocked(models.Model):
 
     victim = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+# MSG API -x -x
+
+# Document API
+class Document(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        User, related_name="documents", on_delete=models.CASCADE)
+    batch = models.ForeignKey(
+        Batch, on_delete=models.CASCADE, related_name="batch_documents")
+
+
+def get_upload_path(instance, filename):
+    batch_code = instance.document.batch.batch_code.split(" ")[0]
+    institute_code = instance.document.batch.institute.institute_code.split(" ")[
+        0]
+
+    return os.path.join('documents', institute_code, batch_code)
+
+
+class DocumentFile(models.Model):
+    file = models.FileField(upload_to=get_upload_path)
+    document = models.ForeignKey(
+        Document, related_name="files", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
