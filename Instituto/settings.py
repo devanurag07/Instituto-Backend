@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     "rest_framework",
     'rest_framework_simplejwt',
     "accounts.apps.AccountsConfig",
@@ -106,6 +107,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Instituto.wsgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 
 # Database
@@ -173,3 +183,6 @@ AUTH_USER_MODEL = 'accounts.User'
 
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+ASGI_APPLICATION = "Instituto.asgi.application"

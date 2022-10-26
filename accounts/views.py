@@ -1,5 +1,3 @@
-from distutils.log import error
-from pyexpat import ErrorString
 import random
 import string
 
@@ -16,8 +14,8 @@ from rest_framework.permissions import IsAuthenticated
 from accounts.models import LoginOtp, OtpTempData, User
 from accounts.services import create_institute
 from accounts.utils import get_model, get_role, required_data, resp_fail, resp_success, set_email, update_profile, user_created, user_exists
-from .serializers import EmailSerializer, InstituteSerializer, UserSerializer
-from institute.models import Institute, OwnerProfile, StudentProfile, TeacherRequest
+from .serializers import UserSerializer
+from institute.models import Institute, StudentProfile, TeacherRequest
 from institute.serializers import SubjectSerialzier
 from batch.models import StudentRequest, Batch, Subject
 from batch.serializers import BatchSerializer
@@ -423,9 +421,9 @@ class AuthCommon(ViewSet):
             institute_code, = req_data
         else:
             errors = req_data
-            return resp_fail("Missing Arguments", {
+            return Response(resp_fail("Missing Arguments", {
                 "errors": errors
-            }, 403)
+            }, 403))
 
         institute = get_model(
             Institute, institute_code=institute_code)
@@ -435,9 +433,10 @@ class AuthCommon(ViewSet):
 
         institute = institute["data"]
         subjects = Subject.objects.filter(institute=institute)
+        serialized = SubjectSerialzier(subjects, many=True)
 
         return Response(resp_success("Institute Subjects Fetched", {
-            "subjects": list(subjects)}))
+            "subjects": serialized.data}))
 
     @action(methods=["POST"], detail=False, url_path="get_institute_batches")
     def get_batches(self, request):
@@ -450,9 +449,9 @@ class AuthCommon(ViewSet):
             institute_code, subjects, grade = req_data
         else:
             errors = req_data
-            return resp_fail("Missing Arguments", {
+            return Response(resp_fail("Missing Arguments", {
                 "errors": errors
-            }, 403)
+            }, 403))
 
         institute = get_model(
             Institute, institute_code=institute_code)
@@ -465,5 +464,5 @@ class AuthCommon(ViewSet):
         batches = Batch.objects.filter(
             institute=institute, batch_subject__subject_name__in=subjects, grade=grade)
         return Response(resp_success("Batches Fetched Successfully", {
-            "batches": BatchSerializer(batches).data
+            "batches": BatchSerializer(batches, many=True).data
         }))
