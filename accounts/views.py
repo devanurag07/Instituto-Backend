@@ -74,11 +74,14 @@ class Auth(ViewSet):
                 user.default_type = get_role(role)
                 user.save()
 
+                user_data = UserSerializer(user).data
+
                 refresh_token = RefreshToken.for_user(user)
 
                 return Response(resp_success("OTP Verified Successfully.", {
                     "token": str(refresh_token.access_token),
-                    "refresh": str(refresh_token)
+                    "refresh": str(refresh_token),
+                    "user": user_data
                 },))
 
             else:
@@ -225,10 +228,13 @@ class Auth(ViewSet):
 
                 # Generating Token
                 refresh_token = RefreshToken.for_user(user)
+                user_data = UserSerializer(user).data
 
                 return Response(resp_success("OTP Verified Successfully", {
                     "token": str(refresh_token.access_token),
-                    "refresh": str(refresh_token)
+                    "refresh": str(refresh_token),
+                    "user": user_data
+
                 }))
 
             else:
