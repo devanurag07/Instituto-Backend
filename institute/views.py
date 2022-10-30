@@ -1,5 +1,6 @@
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from accounts.utils import get_model, required_data, resp_fail, resp_success
+from batch.permissions import IsUserAuthenticated
 from institute.models import Institute, Subject, TeacherRequest
 from institute.permissions import IsOwner
 from institute.services import create_subject, get_insitute, get_teacher_requests, assign_subjects, get_teachers_data
@@ -10,11 +11,12 @@ from rest_framework.decorators import action
 from accounts.models import User
 from accounts.utils import get_model
 
-
 # Owner
+
+
 class SubjectApi(ModelViewSet):
 
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsUserAuthenticated, IsOwner]
 
     def get_queryset(self):
         queryset = Subject.objects.filter(owner=self.request.user)
@@ -40,6 +42,14 @@ class SubjectApi(ModelViewSet):
     # Assign Subjects or Approving Teacher Request
     @action(methods=["POST"], detail=False, url_path="assign_subjects")
     def assign_subjects(self, request, *args, **kwargs):
+        """
+        Owner View
+        Approve Teacher Request if there any - 
+            1.Assign Subjects (Subject Access) To Teacher
+
+        input - teacher_id,subjects (names),grades (Classes)    
+        """
+
         data = request.data
         success, req_data = required_data(
             data, ["teacher_id", "subjects", "grades"])
@@ -55,10 +65,10 @@ class SubjectApi(ModelViewSet):
         # Check Teacher Existence
         teacher = get_model(User, pk=int(teacher_id),
                             role="teacher".capitalize())
+
         if (not teacher["exist"]):
             return Response(resp_fail("Teacher Does Not exist", {}, error_code=602))
         teacher = teacher["data"]
-        #*#
 
         # Check Institute Existence
         institute = get_insitute(request.user)
@@ -69,9 +79,11 @@ class SubjectApi(ModelViewSet):
         # Check Teacher Request Existence
         teacher_request = get_model(
             TeacherRequest, institute=institute, teacher=teacher)
+
         if (not teacher_request["exist"]):
             # return no perm to assign subjects
             return Response(resp_fail("Teacher Request Does Not exist", {}, error_code=604))
+        teacher_request = teacher_request["data"]
 
         # SUCCESS=bool,DATA
         assigned, data = assign_subjects(teacher=teacher,
@@ -80,9 +92,15 @@ class SubjectApi(ModelViewSet):
         if (not assigned):
             return Response(resp_fail("Invalid Data", {"errors": data["errors"]}))
 
-        teacher_request = teacher_request["data"]
-        teacher_request.approved = True
-        teacher_request.save()
+        if institute in teacher.institutes.all():
+            teacher_request.approved = True
+            teacher_request.save()
+
+        else:
+            institute.teachers.add(teacher)
+            institute.save()
+            teacher_request.approved = True
+            teacher_request.save()
 
         return Response(resp_success(
             "Subject Access Provided Successfully", {
@@ -91,7 +109,7 @@ class SubjectApi(ModelViewSet):
 
 
 class InstituteApi(ViewSet):
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsUserAuthenticated, IsOwner]
 
     @action(methods=["GET"], detail=False, url_path="teacher_requests")
     def get_teacher_requests(self, request, *args, **kwargs):

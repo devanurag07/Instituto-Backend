@@ -1,0 +1,29 @@
+Your institute in ur pocket
+
+Owner :-
+notifications : 
+1) announcment 
+2) chats
+3) documents
+4) timing changed
+5) new request
+6) fees
+
+user profile:
+
+name
+profile pic
+institute
+
+fees graphs
+attendence graph
+
+dashboards:
+owner:
+1) stories
+2) create announcments ()
+3) upload doc
+4) recieved messages
+5) revenue counter 
+6) teacher ranking 
+

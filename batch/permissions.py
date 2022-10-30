@@ -1,16 +1,18 @@
 from rest_framework.permissions import BasePermission
+from rest_framework import permissions
 
 
-class BatchCreatePermission(BasePermission):
+class BatchReadWritePermission(BasePermission):
     def has_permission(self, request, view):
-        user = request.user
 
-        role = user.role.lower()
-        if(role == "owner"):
+        if request.method in permissions.SAFE_METHODS:
             return True
+        else:
+            user = request.user
+            role = user.role.lower()
 
-        if(role == "teacher"):
-            return True
+            if(role == "owner" or role == "teacher"):
+                return True
 
 
 class IsUserAuthenticated(BasePermission):
