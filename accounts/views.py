@@ -81,7 +81,8 @@ class Auth(ViewSet):
                 return Response(resp_success("OTP Verified Successfully.", {
                     "token": str(refresh_token.access_token),
                     "refresh": str(refresh_token),
-                    "user": user_data
+                    "user": user_data,
+                    "role": user.role,
                 },))
 
             else:
@@ -229,11 +230,21 @@ class Auth(ViewSet):
                 # Generating Token
                 refresh_token = RefreshToken.for_user(user)
                 user_data = UserSerializer(user).data
+                user_role = user.role
+                if(user_role == "teacher"):
+                    institute_codes = [
+                        institute.institute_code for institute in user.institutes.all()]
+
+                elif(user_role == "student"):
+                    institute_codes = [
+                        institute.institute_code for institute in Institute.objects.filter(batches__students__in=[user])]
 
                 return Response(resp_success("OTP Verified Successfully", {
                     "token": str(refresh_token.access_token),
                     "refresh": str(refresh_token),
-                    "user": user_data
+                    "user": user_data,
+                    "role": user.role,
+                    'institute_codes': institute_codes
 
                 }))
 

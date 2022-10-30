@@ -266,8 +266,7 @@ class DocumentAPI(ModelViewSet):
             return Document.objects.filter(batch__students__in=[user])
 
     def list(self, request, *args, **kwargs):
-        params=request.query_params
-        limit=params.get("limit",10)
+        params = request.query_params
+        limit = params.get("limit", 10)
 
-        queryset=self.get_queryset()
-
+        queryset = self.get_queryset()
