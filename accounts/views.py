@@ -230,6 +230,7 @@ class Auth(ViewSet):
                 # Generating Token
                 refresh_token = RefreshToken.for_user(user)
                 user_data = UserSerializer(user).data
+                print(user.institute)
 
                 return Response(resp_success("OTP Verified Successfully", {
                     "token": str(refresh_token.access_token),
