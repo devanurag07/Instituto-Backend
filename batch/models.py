@@ -28,7 +28,7 @@ class Batch(models.Model):
     batch_subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
 
     institute = models.ForeignKey(
-        Institute, on_delete=models.CASCADE)
+        Institute, on_delete=models.CASCADE, related_name="batches")
 
     teacher = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="teacher_batches")
