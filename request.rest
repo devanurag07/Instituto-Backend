@@ -37,7 +37,7 @@ POST http://127.0.0.1:8000/api/auth/get_login_otp/
 Content-Type: application/json
 
 {
-    "mobile":"9837654970"
+    "mobile":"1111111111"
 }
 
 
@@ -46,8 +46,8 @@ POST http://127.0.0.1:8000/api/auth/login_otp_verify/
 Content-Type: application/json
 
 {
-    "mobile":"9837654970",
-    "otp":"36713"
+    "mobile":"1111111111",
+    "otp":"5294"
 }
 ##########
 {
@@ -116,12 +116,12 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiY
 #########
 POST http://127.0.0.1:8000/api/subject/assign_subjects/
 Content-Type: application/json
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjYxOTU2MjQzLCJpYXQiOjE2NjE5NTI2NDMsImp0aSI6IjcwYjlkZTY4MjcxNzQ3NzhhMGI2YTQ4MmMwMTY5NWMzIiwidXNlcl9pZCI6Nn0.lAOFmES9kqYzJtn1TRP2UCNVTekef1ApsGCsThgFU-s
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjY3NTQ3MTQ0LCJpYXQiOjE2Njc0OTY2NzUsImp0aSI6IjAwN2UwYjAxNTVjODRjYmViMGU4ZGFkZTIyMzMyODdlIiwidXNlcl9pZCI6MX0.rtsksd_lq1f6Xp_zqN7IzCllnN-Np7PrO24162ooe_I
 
 {
-    "teacher_id":"7",
+    "teacher_id":"16",
     "grades":["11"],
-    "subjects":["Maths"]
+    "subjects":["MATHS"]
 
 }
 

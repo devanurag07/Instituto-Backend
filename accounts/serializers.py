@@ -19,7 +19,7 @@ class UserSerializer(ModelSerializer):
         fields = ["first_name", "last_name", "mobile"]
 
     def validate_mobile(self, mobile):
-        if(_validate_mobile(mobile)):
+        if (_validate_mobile(mobile)):
             return mobile
 
         raise ValidationError("Invalid Mobile Number")

@@ -123,6 +123,8 @@ class InstituteApi(ViewSet):
 
         teacher_reqs_data = get_teacher_requests(institute)
 
+        print(teacher_reqs_data)
+
         return Response(resp_success("Teacher Request Fetched", {
             "data": teacher_reqs_data
         }))

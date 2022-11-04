@@ -27,3 +27,10 @@ owner:
 5) revenue counter 
 6) teacher ranking 
 
+
+
+/// api needs and problems
+
+1) return teacher_id when teacher request featch
+2) assign teacher subject/class not working
+3) make endpoint for student request

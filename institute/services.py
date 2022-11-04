@@ -107,6 +107,8 @@ def get_teacher_requests(institute):
             model = TeacherRequest
             fields = "__all__"
 
+    # print(teacher_requests.all().values())  bro teacher ki id return krde teacher: {id: 16} me
+
     data = TeacherRequestSerializer(teacher_requests, many=True).data
     return data
 
