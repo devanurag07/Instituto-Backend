@@ -45,9 +45,9 @@ class BatchApi(ModelViewSet):
         else:
             errors = req_data
 
-            return resp_fail("Missing Arguments", {
+            return Response(resp_fail("Missing Arguments", {
                 "errors": errors
-            }, 502)
+            }, 502))
 
         # Checking Conditions and Errors
         institute = get_model(Institute, pk=int(institute))
@@ -55,27 +55,25 @@ class BatchApi(ModelViewSet):
             return Response(resp_fail("Institute Does Not Exist", {}))
 
         institute = institute["data"]
+        user = request.user
 
-        teacher_request = get_model(
-            TeacherRequest, institute=institute, teacher=request.user, approved=False)
-
-        if(not teacher_request["exist"]):
+        if(user in institute.teachers.all() or user == institute.owner):
+            pass
+        else:
             return Response(resp_fail("You Do Not Belong To Institute", error_code=504))
 
-        teacher_request = teacher_request['data']
-        if(not teacher_request.approved):
-            return Response(resp_fail("You are not allowed to create batch", data={}, error_code=505))
-
         subject = get_model(Subject, institute=institute,
-                            subject=batch_subject)
+                            subject_name=batch_subject)
+
         if(not subject['exist']):
             return Response(resp_fail("Subject Does Not Exist", error_code=506))
 
         subject = subject['data']
-        has_create_perm = has_subject_perm(subject=subject)
+        has_create_perm = has_subject_perm(
+            subject=subject, teacher=request.user)
 
         if(has_create_perm):
-            batch_exists = Batch.objects.filter(batch_code).exists()
+            batch_exists = Batch.objects.filter(batch_code=batch_code).exists()
 
             if(batch_exists):
                 return Response(resp_fail("Batch With This Batch Code Already Exists", {}, error_code=504))
@@ -87,7 +85,7 @@ class BatchApi(ModelViewSet):
                     "grade": grade,
                     "batch_subject": subject.id,
                     "institute": institute.id,
-                    "teacher": request.user
+                    "teacher": request.user.id
                 }
             )
 
