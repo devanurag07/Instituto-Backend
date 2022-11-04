@@ -47,10 +47,11 @@ INSTALLED_APPS = [
     "rest_framework",
     'rest_framework_simplejwt',
     "accounts.apps.AccountsConfig",
-    "institute",
     'simple_history',
+    "corsheaders",
+    "institute",
     "batch",
-    "corsheaders"
+    "notifications"
 ]
 
 MIDDLEWARE = [

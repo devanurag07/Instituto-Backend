@@ -231,23 +231,31 @@ class Auth(ViewSet):
                 # Generating Token
                 refresh_token = RefreshToken.for_user(user)
                 user_data = UserSerializer(user).data
-                user_role = user.role
+                user_role = user.role.lower()
                 institute_codes = []
+                institute_code = None
 
                 if (user_role == "teacher"):
                     institute_codes = [
-                        institute.institute_code for institute in user.institutes.all()]
+                        (institute.id, institute.institute_code) for institute in user.institutes.all()]
 
                 elif (user_role == "student"):
                     institute_codes = [
-                        institute.institute_code for institute in Institute.objects.filter(batches__students__in=[user])]
+                        (institute.id, institute.institute_code) for institute in Institute.objects.filter(batches__students__in=[user])]
 
-                # print(Institute.objects.all().values())
+                elif (user_role == "owner"):
+                    institute = Institute.objects.filter(owner=user)
+                    if (institute.exists()):
+                        institute_code = institute.first().institute_code
+                        institute_codes.append(
+                            (institute.first().id, institute_code))
 
                 return Response(resp_success("OTP Verified Successfully", {
                     "token": str(refresh_token.access_token),
                     "refresh": str(refresh_token),
-                    "user": {'id': user.id, **user_data, 'role': user.role, 'institute_codes': institute_codes},
+                    "user": user_data,
+                    "role": user.role,
+                    'institute_codes': institute_codes,
                 }))
 
             else:

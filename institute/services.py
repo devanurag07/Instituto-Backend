@@ -79,6 +79,8 @@ def has_subject_perm(subject, teacher):
     Returns True if teacher has perm or access to subject
     otherwise False
     """
+    if(subject.institute.owner == teacher):
+        return True
 
     subject_accs = get_assigned_subjects(teacher=teacher)
     if (subject_accs["success"]):

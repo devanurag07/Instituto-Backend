@@ -82,13 +82,38 @@ class InstituteNotifications(AsyncJsonWebsocketConsumer):
 class BatchNotifications(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]
-        self.institute_code = self.scope['url_route']['kwargs']['batch_code']
+        self.batch_code = self.scope['url_route']['kwargs']['batch_code']
 
-        self.group_name = 'insitute_'+self.institute_code  # Each Institute
-        perm_to_connect = await self.has_perm_to_connect()
+        self.group_name = 'batchcode_'+self.batch_code  # Each Institute
+        perm_to_connect = await self.has_perm_to_connect(self.batch_code)
 
         if(perm_to_connect):
             await self.channel_layer.group_add(self.group_name, self.channel_name)
             await self.accept()
         else:
             self.close()
+
+    @database_sync_to_async
+    def has_perm_to_connect(self, batch_code):
+        batch = get_model(Batch, batch_code=batch_code)
+        user_role = self.user.role.lower()
+        user = self.user
+
+        if(batch["exist"]):
+            batch = batch["data"]
+            if(user_role == "teacher"):
+                if(batch.teacher == user):
+                    return True
+                return False
+
+            elif(user_role == "student"):
+                student_exist = Batch.objects.filter(
+                    batch_code=batch_code, students__in=[user]).exists()
+
+                if(student_exist):
+                    return True
+                return False
+
+            return False
+        else:
+            return False

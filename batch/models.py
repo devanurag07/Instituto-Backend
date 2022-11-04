@@ -33,8 +33,8 @@ class Batch(models.Model):
     teacher = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="teacher_batches")
 
-    students = models.ManyToManyField(User, related_name="batches")
-    blacklist_students = models.ManyToManyField(User)
+    students = models.ManyToManyField(User, related_name="batches", blank=True)
+    blacklist_students = models.ManyToManyField(User, blank=True)
 
     history = HistoricalRecords()
 

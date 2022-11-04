@@ -16,7 +16,7 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["first_name", "last_name", "mobile"]
+        fields = ["first_name", "last_name", "mobile", "id"]
 
     def validate_mobile(self, mobile):
         if (_validate_mobile(mobile)):
