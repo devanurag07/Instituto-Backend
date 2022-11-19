@@ -486,7 +486,7 @@ class AuthCommon(ViewSet):
         institute = institute["data"]
 
         batches = Batch.objects.filter(
-            institute=institute, batch_subject__subject_name__in=subjects, grade=grade)
+            institute=institute, batch_subject__subject_name__in=subjects, grade=int(grade))
 
         return Response(resp_success("Batches Fetched Successfully", {
             "batches": BatchSerializer(batches, many=True).data
