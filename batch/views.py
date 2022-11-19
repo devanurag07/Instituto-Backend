@@ -199,6 +199,25 @@ class BatchApi(ModelViewSet):
         else:
             return Response(resp_fail("You Are Not Authorized To Remove The Student"))
 
+    @action(methods=["GET"], detail=True, url_path="list_batches")
+    def list_batches(self, request, pk=None, *args, **kwargs):
+        role = self.request.user.role
+        user = request.user
+
+        batches = None
+        if(role.lower() == "student"):
+            batches = Batch.objects.filter(students__in=[user])
+        elif(role.lower() == "teacher"):
+            batches = Batch.objects.filter(teacher=user)
+        elif(role.lower() == "owner"):
+            batches = Batch.objects.filter(institute__owner=user)
+        else:
+            return Response(resp_fail('You do not have valid role.'))
+
+        data = BatchSerializer(batches, many=True).data
+        response = resp_success("Batches Retrieved", data)
+        return Response(response)
+
 
 class MessageAPI(ModelViewSet):
     permission_classes = [IsUserAuthenticated]

@@ -18,8 +18,6 @@ router.register("subject", SubjectApi, basename="subject_api")
 router.register("institute", InstituteApi, basename="institute_api")
 
 urlpatterns = router.urls
-
 urlpatterns += [
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
 ]
