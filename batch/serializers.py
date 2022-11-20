@@ -4,9 +4,19 @@ from accounts.models import User
 from batch.models import Batch, Document, DocumentFile, Message, StudentRequest
 from rest_framework.serializers import ModelSerializer
 from accounts.serializers import UserSerializer
+from rest_framework import serializers
 
 
 class BatchSerializer(ModelSerializer):
+    teacher_name = serializers.SerializerMethodField()
+    subject_name = serializers.SerializerMethodField()
+
+    def get_subject_name(self, instance):
+        return instance.subject.subject_name
+
+    def get_teacher_name(self, instance):
+        return instance.teacher.first_name + " " + instance.teacher.last_name
+
     class Meta:
         model = Batch
         fields = "__all__"
