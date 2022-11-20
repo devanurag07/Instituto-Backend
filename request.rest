@@ -33,7 +33,7 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiY
 }
 
 ##############
-POST http://127.0.0.1:8000/api/auth/get_login_otp/
+POST http://127.0.0.1:8000/api/v1/auth/get_login_otp/
 Content-Type: application/json
 
 {
@@ -42,12 +42,12 @@ Content-Type: application/json
 
 
 ##############
-POST http://127.0.0.1:8000/api/auth/login_otp_verify/
+POST http://127.0.0.1:8000/api/v1/auth/login_otp_verify/
 Content-Type: application/json
 
 {
     "mobile":"1111111111",
-    "otp":"5294"
+    "otp":"3747"
 }
 ##########
 {

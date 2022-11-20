@@ -253,9 +253,7 @@ class Auth(ViewSet):
                 return Response(resp_success("OTP Verified Successfully", {
                     "token": str(refresh_token.access_token),
                     "refresh": str(refresh_token),
-                    "user": user_data,
-                    "role": user.role,
-                    'institute_codes': institute_codes,
+                    "user": {**user_data, "role": user.role, "institute_codes": institute_codes}
                 }))
 
             else:
@@ -488,7 +486,7 @@ class AuthCommon(ViewSet):
         institute = institute["data"]
 
         batches = Batch.objects.filter(
-            institute=institute, batch_subject__subject_name__in=subjects, grade=grade)
+            institute=institute, batch_subject__subject_name__in=subjects, grade=int(grade))
         return Response(resp_success("Batches Fetched Successfully", {
             "batches": BatchSerializer(batches, many=True).data
         }))
