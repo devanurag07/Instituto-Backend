@@ -199,7 +199,7 @@ class BatchApi(ModelViewSet):
         else:
             return Response(resp_fail("You Are Not Authorized To Remove The Student"))
 
-    @action(methods=["GET"], detail=True, url_path="list_batches")
+    @action(methods=["GET"], detail=False, url_path="list_batches")
     def list_batches(self, request, pk=None, *args, **kwargs):
         role = self.request.user.role
         user = request.user
