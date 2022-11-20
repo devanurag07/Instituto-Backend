@@ -55,6 +55,7 @@ def create_msg(request, msg, reciever_id):
 
     # IF Communication is Std -> Std
     if(user_type == "student" and reciever_user_type == "student"):
+
         return {
             "success": False,
             "msg": None,

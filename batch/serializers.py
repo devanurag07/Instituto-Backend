@@ -12,7 +12,7 @@ class BatchSerializer(ModelSerializer):
     subject_name = serializers.SerializerMethodField()
 
     def get_subject_name(self, instance):
-        return instance.subject.subject_name
+        return instance.batch_subject.subject_name
 
     def get_teacher_name(self, instance):
         return instance.teacher.first_name + " " + instance.teacher.last_name
