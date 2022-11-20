@@ -6,9 +6,13 @@ from batch.models import Batch, Blocked, Message
 from accounts.models import User
 from batch.serializers import MessageSerializer
 from institute.services import get_insitute
-
+from rest_framework import serializers
+from accounts.serializers import UserSerializer
+from batch.models import Document
 
 # Check For Blocked MSGS
+
+
 def is_blocked(sender, receiver):
 
     sender_blocked = Blocked.objects.filter(
@@ -166,3 +170,38 @@ def get_convs(user):
         is_batch_msg=False, sender=user).values_list("receiver")
     received_msgs_senders = Message.objects.filter(
         is_batch_msg=False, receiver=user).values_list("sender")
+
+
+# BatchView
+
+def get_batch_details(batch):
+
+    class MessageSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Message
+            fields = "__all__"
+
+    class DocumentSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Document
+            fields = "__all__"
+
+    class BatchSerializer(serializers.ModelSerializer):
+        students = UserSerializer(many=True)
+        blacklist_students = UserSerializer(many=True)
+        messages_list = serializers.SerializerMethodField()
+        documents_list = serializers.SerializerMethodField()
+
+        def get_messages_list(self, batch):
+            messages = batch.messages.all()
+            return MessageSerializer(messages, many=True).data
+
+        def get_documents_list(self, batch):
+            documents = batch.batch_documents.all()
+            return DocumentSerializer(documents, many=True).data
+
+        class Meta:
+            model = Batch
+            fields = "__all__"
+
+    return BatchSerializer(batch).data

@@ -16,6 +16,7 @@ from .permissions import BatchReadWritePermission, IsUserAuthenticated
 from batch.models import Batch, Document, Message, StudentRequest
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from .services import get_batch_details
 
 # Create your views here.
 
@@ -107,7 +108,25 @@ class BatchApi(ModelViewSet):
                 'error_code': 506
             }))
 
-    @action(methods=["GET", "POST"], detail=True, url_path="list_student_reqs")
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        if(pk == None):
+            return Response(resp_fail("No Batch Id provided"))
+
+        queryset = self.get_queryset()
+        if(queryset):
+            batch_list = queryset.filter(pk=int(pk))
+            if(batch_list.exists()):
+                batch = batch_list.first()
+            else:
+                return Response(resp_fail("Batch Does Not Exist"))
+        else:
+            return Response(resp_fail("Do not have the permission"))
+
+        data = get_batch_details(batch)
+
+        return Response(resp_success("Batch Details Retrieved", data))
+
+    @ action(methods=["GET", "POST"], detail=True, url_path="list_student_reqs")
     def list_student_reqs(self, request, pk=None, *args, **kwargs):
         batch_id = pk
         user = request.user
@@ -128,7 +147,7 @@ class BatchApi(ModelViewSet):
         else:
             return Response(resp_fail("You Are Not Authorized"))
 
-    @action(methods=["POST"], detail=False, url_path="accept_student")
+    @ action(methods=["POST"], detail=False, url_path="accept_student")
     def accept_student_request(self, request, *args, **kwargs):
         data = request.data
         user = request.user
@@ -164,7 +183,7 @@ class BatchApi(ModelViewSet):
         else:
             return Response(resp_fail("You are not authorized to approve request"))
 
-    @action(methods=["POST"], detail=True, url_path="remove_student")
+    @ action(methods=["POST"], detail=True, url_path="remove_student")
     def remove_student(self, request, pk=None, *args, **kwargs):
         batch_id = pk
         user = request.user
@@ -199,7 +218,7 @@ class BatchApi(ModelViewSet):
         else:
             return Response(resp_fail("You Are Not Authorized To Remove The Student"))
 
-    @action(methods=["GET"], detail=False, url_path="list_batches")
+    @ action(methods=["GET"], detail=False, url_path="list_batches")
     def list_batches(self, request, pk=None, *args, **kwargs):
         role = self.request.user.role
         user = request.user
@@ -248,7 +267,7 @@ class MessageAPI(ModelViewSet):
             "Message Sent Successfully", resp
         ))
 
-    @action(methods=['POST'], detail=False, url_path="send_msg_batch")
+    @ action(methods=['POST'], detail=False, url_path="send_msg_batch")
     def send_msg_batch(self, request, *args, **kwargs):
         data = request.data
 
