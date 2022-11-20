@@ -85,3 +85,10 @@ class StudentProfile(models.Model):
     mother_name = models.CharField(max_length=255, null=True)
 
     history = HistoricalRecords()
+
+
+class InstituteConfiguration(models.Model):
+    institute = models.ForeignKey(Institute, on_delete=models.CASCADE)
+    student_to_student_chat = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField()

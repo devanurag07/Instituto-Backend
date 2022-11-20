@@ -114,7 +114,7 @@ def has_msg_perm_batch(batch, user):
         return False
     return False
 
-# Creates MSG for Batch
+# Creates MSG for Batc
 
 
 def create_batch_msg(request, msg, batch_id):

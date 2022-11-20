@@ -6,15 +6,17 @@ from institute.models import Subject, SubjectAccess
 from institute.serializers import SubjectAccessSerializer
 from .serializers import InstituteSerializer
 from rest_framework.serializers import ModelSerializer
-
+from institute.models import InstituteConfiguration
 # Owner
 
 
 def create_institute(data, owner):
     # Validation Of Data
     institute_form = InstituteSerializer(data=data)
+
     if(institute_form.is_valid()):
         # Saving Data
+        InstituteConfiguration.objects.get_or_create(institute=institute)
         institute = institute_form.save(owner=owner)
         institute_data = InstituteSerializer(institute, many=False).data
 

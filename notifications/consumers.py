@@ -6,6 +6,7 @@ from accounts.models import User
 from accounts.utils import get_model
 from batch.models import Batch
 from institute.models import Institute
+from .models import ActiveUser
 
 
 class InstituteNotifications(AsyncJsonWebsocketConsumer):
@@ -119,43 +120,46 @@ class BatchNotifications(AsyncJsonWebsocketConsumer):
             return False
 
 
-
-
-class BatchNotifications(AsyncJsonWebsocketConsumer):
+class UserToUserRealTime(AsyncJsonWebsocketConsumer):
     async def connect(self):
+
         self.user = self.scope["user"]
-        self.batch_code = self.scope['url_route']['kwargs']['batch_code']
+        # Adding User to Channel
+        await self.add_user()
+        await self.accept()
 
-        self.group_name = 'batchcode_'+self.batch_code  # Each Institute
-        perm_to_connect = await self.has_perm_to_connect(self.batch_code)
+        self.close()
 
-        if(perm_to_connect):
-            await self.channel_layer.group_add(self.group_name, self.channel_name)
-            await self.accept()
-        else:
-            self.close()
+    async def disconnect(self, code):
+        await self.remove_user()
+        await self.disconnect(code=code)
+
+    def receive(self, text_data=None, bytes_data=None, **kwargs):
+        print(text_data)
 
     @database_sync_to_async
-    def has_perm_to_connect(self, batch_code):
-        batch = get_model(Batch, batch_code=batch_code)
-        user_role = self.user.role.lower()
+    def get_user_channel(self, to_user_id):
+        to_user = get_model(User, id=int(to_user_id))
+        if(not to_user["exist"]):
+            return False, "The User Does Not Exist"
+
         user = self.user
+        to_user = to_user['data']
+        user_role = self.user.role.lower()
+        to_user_role = to_user.role.lower()
 
-        if(batch["exist"]):
-            batch = batch["data"]
-            if(user_role == "teacher"):
-                if(batch.teacher == user):
-                    return True
-                return False
+        # if(user_role=="student" and to_user_role=="student"):
+        #     return False,"You can't talk to student "
 
-            elif(user_role == "student"):
-                student_exist = Batch.objects.filter(
-                    batch_code=batch_code, students__in=[user]).exists()
+        active_to_user = ActiveUser.objects.filter(user__id=int(to_user_id))
+        return active_to_user.channel_name, active_to_user.user
 
-                if(student_exist):
-                    return True
-                return False
+    @database_sync_to_async
+    def add_user(self):
+        self.clean_user()
+        ActiveUser.objects.create(
+            user=self.user, channel_name=self.channel_name)
 
-            return False
-        else:
-            return False
+    @database_sync_to_async
+    def remove_user(self):
+        self.clean_user()
