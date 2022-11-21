@@ -5,6 +5,8 @@ from accounts.utils import get_model
 from batch.models import Batch, Blocked, Message
 from accounts.models import User
 from batch.serializers import MessageSerializer
+from institute.serializers import SubjectSerialzier,
+from accounts.serializers import User
 from institute.services import get_insitute
 from rest_framework import serializers
 from accounts.serializers import UserSerializer
@@ -191,6 +193,8 @@ def get_batch_details(batch):
         blacklist_students = UserSerializer(many=True)
         messages_list = serializers.SerializerMethodField()
         documents_list = serializers.SerializerMethodField()
+        batch_subject = SubjectSerialzier(many=False)
+        teacher = UserSerializer(many=False)
 
         def get_messages_list(self, batch):
             messages = batch.messages.all()
