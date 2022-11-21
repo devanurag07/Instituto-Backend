@@ -334,7 +334,7 @@ class AuthPost(ModelViewSet):
             # student_request = StudentRequest(student=request.user)
 
             for batch_name in batches:
-                batch_list = institute.batches.objects.filter(
+                batch_list = institute.batches.filter(
                     batch_name=batch_name)
 
                 if(batch_list.exists()):
