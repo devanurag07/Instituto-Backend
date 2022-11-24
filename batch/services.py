@@ -5,7 +5,7 @@ from accounts.utils import get_model
 from batch.models import Batch, Blocked, Message
 from accounts.models import User
 from batch.serializers import MessageSerializer
-from institute.serializers import SubjectSerialzier,
+from institute.serializers import SubjectSerialzier
 from accounts.serializers import User
 from institute.services import get_insitute
 from rest_framework import serializers

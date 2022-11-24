@@ -37,7 +37,7 @@ POST http://127.0.0.1:8000/api/auth/get_login_otp/
 Content-Type: application/json
 
 {
-    "mobile":"9837654970"
+    "mobile":"8010741981"
 }
 
 

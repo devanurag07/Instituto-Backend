@@ -24,7 +24,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.urls import path
 from notifications.consumers import UserToUserRealTime
-
+from notifications.routing import websocket_urlpatterns
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
 # Initialize Django ASGI application early to ensure the AppRegistry
@@ -36,9 +36,7 @@ application = ProtocolTypeRouter({
     # WebSocket chat handler
     "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
-            URLRouter([
-                path("usertouser/", UserToUserRealTime.as_asgi()),
-            ])
+            URLRouter(websocket_urlpatterns)
         )
     ),
     # Just HTTP for now. (We can add other protocols later.)

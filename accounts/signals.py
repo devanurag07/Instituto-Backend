@@ -12,6 +12,6 @@ def create_profile(sender, instance, created, **kwargs):
             StudentProfile.objects.create(user=instance)
         elif(role == "owner"):
             OwnerProfile.objects.create(user=instance)
-
+            
         else:
             pass
